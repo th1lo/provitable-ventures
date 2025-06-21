@@ -144,32 +144,8 @@ export const getAllAcquisitionMethods = async (item: ItemPrice, priceCache: Map<
     data?: any
   }> = []
 
-  // Add direct trader purchases (deduplicated)
-  if (item.sellFor) {
-    const tradersSeen = new Set<string>()
-    
-    for (const sellOption of item.sellFor) {
-      if (sellOption.source !== 'flea-market' && sellOption.price > 0) {
-        // Skip if we already have this trader
-        if (tradersSeen.has(sellOption.source)) {
-          continue
-        }
-        tradersSeen.add(sellOption.source)
-        
-        const costInRubles = convertToRubles(sellOption.price, sellOption.currency)
-        
-        methods.push({
-          type: 'trader',
-          cost: sellOption.price,
-          costInRubles,
-          currency: sellOption.currency,
-          details: `${sellOption.source} (${formatCurrency(sellOption.price, sellOption.currency as any)})`,
-          id: `${sellOption.source}-${item.id}`,
-          data: sellOption
-        })
-      }
-    }
-  }
+  // Note: sellFor is what traders PAY YOU when selling TO them, not what you pay to buy FROM them
+  // Direct trader purchases are typically handled through bartersFor with currency exchanges
 
   // Add craft methods
   for (const craft of item.crafts) {
@@ -187,7 +163,7 @@ export const getAllAcquisitionMethods = async (item: ItemPrice, priceCache: Map<
     }
   }
 
-  // Add barter methods
+  // Add barter methods (includes both item trades and currency purchases)
   for (const barter of item.barters) {
     const cost = await calculateBarterCost(barter, priceCache)
     if (cost > 0) {

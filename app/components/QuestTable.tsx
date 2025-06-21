@@ -2,7 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 // Collapsible components not needed for quest tables - using external state
-import { ChevronDown, ExternalLink, AlertTriangle } from 'lucide-react'
+import { ChevronDown, ExternalLink, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { ItemPrice } from '../types/tarkov'
 import { formatCurrency, isFleaMarketRestricted, getTotalValue } from '../utils/tarkov-utils'
 import { FleaRestrictedItemTable } from './FleaRestrictedItemTable'
@@ -15,6 +15,33 @@ interface QuestTableProps {
   bitcoinFarmLevel: number
   itemPriceCache: Map<string, number>
   onToggleExpansion: (questName: string) => void
+}
+
+const getPriceChangeBadge = (change: number | undefined) => {
+  if (change === undefined) return null
+  
+  if (change > 0) {
+    return (
+      <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-full text-green-700 dark:text-green-300 text-xs font-medium">
+        <TrendingUp className="h-3 w-3" />
+        +{change.toFixed(1)}%
+      </div>
+    )
+  }
+  if (change < 0) {
+    return (
+      <div className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-full text-red-700 dark:text-red-300 text-xs font-medium">
+        <TrendingDown className="h-3 w-3" />
+        {change.toFixed(1)}%
+      </div>
+    )
+  }
+  return (
+    <div className="inline-flex items-center gap-1 px-2 py-1 bg-neutral-100 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-full text-neutral-600 dark:text-neutral-400 text-xs font-medium">
+      <Minus className="h-3 w-3" />
+      0.0%
+    </div>
+  )
 }
 
 export const QuestTable: React.FC<QuestTableProps> = ({
@@ -40,9 +67,22 @@ export const QuestTable: React.FC<QuestTableProps> = ({
           <div className="flex items-center gap-4">
             <ChevronDown className={`h-5 w-5 text-neutral-600 dark:text-neutral-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             <div className="text-left">
-              <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                {questName}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                  {questName}
+                </h3>
+                {QUEST_WIKI_LINKS[questName] && (
+                  <a
+                    href={QUEST_WIKI_LINKS[questName]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 {items.length} items • {fleaRestrictedItems.length} restricted
               </p>
@@ -55,18 +95,6 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                 {formatCurrency(totalCost)}
               </div>
             </div>
-            
-            {QUEST_WIKI_LINKS[questName] && (
-              <a
-                href={QUEST_WIKI_LINKS[questName]}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors p-2"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            )}
           </div>
         </div>
       </button>
@@ -89,7 +117,7 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                         <th className="text-center p-3 text-neutral-700 dark:text-neutral-300 font-medium w-16">Qty</th>
                         <th className="text-right p-3 text-neutral-700 dark:text-neutral-300 font-medium w-32">Unit Price</th>
                         <th className="text-right p-3 text-neutral-700 dark:text-neutral-300 font-medium w-32">Total</th>
-                        <th className="text-center p-3 text-neutral-700 dark:text-neutral-300 font-medium w-20">Change</th>
+                        <th className="text-center p-3 text-neutral-700 dark:text-neutral-300 font-medium w-24">Change</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -115,19 +143,21 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                           </td>
                           <td className="p-3">
                             <div className="flex items-center gap-3">
-                              <div className="font-medium text-neutral-900 dark:text-neutral-100">
-                                {item.shortName}
+                              <div className="flex items-center gap-2">
+                                <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                                  {item.shortName}
+                                </div>
+                                {item.wikiLink && (
+                                  <a
+                                    href={item.wikiLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                )}
                               </div>
-                              {item.wikiLink && (
-                                <a
-                                  href={item.wikiLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-                              )}
                             </div>
                           </td>
                           <td className="p-3 text-center">
@@ -142,17 +172,7 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                             {formatCurrency((item.avg24hPrice || 0) * item.quantity)}
                           </td>
                           <td className="p-3 text-center">
-                            {item.changeLast48hPercent !== undefined && (
-                              <Badge 
-                                variant={item.changeLast48hPercent >= 0 ? "default" : "secondary"}
-                                className={item.changeLast48hPercent >= 0 
-                                  ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300" 
-                                  : "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300"
-                                }
-                              >
-                                {item.changeLast48hPercent >= 0 ? '+' : ''}{item.changeLast48hPercent.toFixed(1)}%
-                              </Badge>
-                            )}
+                            {getPriceChangeBadge(item.changeLast48hPercent)}
                           </td>
                         </tr>
                       ))}
@@ -192,8 +212,24 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                           </div>
                         )}
                         <div>
-                          <div className="font-medium text-neutral-900 dark:text-neutral-100">
-                            {item.shortName}
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2">
+                              <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                                {item.shortName}
+                              </div>
+                              {item.wikiLink && (
+                                <a 
+                                  href={item.wikiLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                                  title="View on Wiki"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              )}
+                            </div>
+                            {getPriceChangeBadge(item.changeLast48hPercent)}
                           </div>
                           <div className="text-sm text-neutral-500 dark:text-neutral-500">
                             Quantity: {item.quantity} • Flea Market Restricted
@@ -209,17 +245,6 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                             Total Cost
                           </div>
                         </div>
-                        {item.wikiLink && (
-                          <a 
-                            href={item.wikiLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-                            title="View on Wiki"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
                       </div>
                     </div>
                     

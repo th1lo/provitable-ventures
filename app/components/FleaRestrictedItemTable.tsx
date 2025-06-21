@@ -6,7 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { Hammer, ArrowRightLeft, ChevronDown, Clock, AlertTriangle, ShoppingCart } from 'lucide-react'
+import { Hammer, ArrowRightLeft, ChevronDown, Clock, AlertTriangle, ShoppingCart, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { ItemPrice } from '../types/tarkov'
 import { 
   formatCurrency, 
@@ -22,9 +22,37 @@ interface FleaRestrictedItemTableProps {
   itemPriceCache: Map<string, number>
 }
 
-const ItemTable = ({ requiredItems, itemPriceCache }: {
+const getPriceChangeBadge = (change: number | undefined) => {
+  if (change === undefined || change === null) return null
+  
+  if (change > 0) {
+    return (
+      <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-full text-green-700 dark:text-green-300 text-xs font-medium">
+        <TrendingUp className="h-3 w-3" />
+        +{change.toFixed(1)}%
+      </div>
+    )
+  }
+  if (change < 0) {
+    return (
+      <div className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-full text-red-700 dark:text-red-300 text-xs font-medium">
+        <TrendingDown className="h-3 w-3" />
+        {change.toFixed(1)}%
+      </div>
+    )
+  }
+  return (
+    <div className="inline-flex items-center gap-1 px-2 py-1 bg-neutral-100 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-full text-neutral-600 dark:text-neutral-400 text-xs font-medium">
+      <Minus className="h-3 w-3" />
+      0.0%
+    </div>
+  )
+}
+
+const ItemTable = ({ requiredItems, itemPriceCache, itemDataCache }: {
   requiredItems: Array<{ item: { id: string; name: string; shortName: string; iconLink: string | null }; count: number }>
   itemPriceCache: Map<string, number>
+  itemDataCache?: Map<string, { changeLast48hPercent?: number }> // For price change data
 }) => (
   <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
     <table className="w-full text-sm">
@@ -35,12 +63,15 @@ const ItemTable = ({ requiredItems, itemPriceCache }: {
           <th className="text-center p-3 text-neutral-700 dark:text-neutral-300 font-medium w-16">Qty</th>
           <th className="text-right p-3 text-neutral-700 dark:text-neutral-300 font-medium w-32">Unit</th>
           <th className="text-right p-3 text-neutral-700 dark:text-neutral-300 font-medium w-32">Total</th>
+          <th className="text-center p-3 text-neutral-700 dark:text-neutral-300 font-medium w-24">Change</th>
         </tr>
       </thead>
       <tbody>
         {requiredItems.map((req, index) => {
           const unitPrice = itemPriceCache.get(req.item.id) || 0
           const totalPrice = unitPrice * req.count
+          const itemData = itemDataCache?.get(req.item.id)
+          
           return (
             <tr key={index} className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
               <td className="p-3">
@@ -73,6 +104,9 @@ const ItemTable = ({ requiredItems, itemPriceCache }: {
               <td className="p-3 text-right font-mono font-semibold text-neutral-900 dark:text-neutral-100">
                 {formatCurrency(totalPrice)}
               </td>
+              <td className="p-3 text-center">
+                {getPriceChangeBadge(itemData?.changeLast48hPercent)}
+              </td>
             </tr>
           )
         })}
@@ -96,11 +130,29 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
     data?: any
   }>>([])
   const [openMethods, setOpenMethods] = useState<Set<string>>(new Set())
+  const [itemDataCache, setItemDataCache] = useState<Map<string, { changeLast48hPercent?: number }>>(new Map())
 
   useEffect(() => {
     const fetchMethods = async () => {
       const methods = await getAllAcquisitionMethods(item, itemPriceCache)
       setAcquisitionMethods(methods)
+      
+      // Collect all required item IDs to fetch their price change data
+      const requiredItemIds = new Set<string>()
+      methods.forEach(method => {
+        if (method.data?.requiredItems) {
+          method.data.requiredItems.forEach((req: any) => requiredItemIds.add(req.item.id))
+        }
+      })
+      
+      // Fetch price change data for required items (mock data for now)
+      const dataCache = new Map<string, { changeLast48hPercent?: number }>()
+      Array.from(requiredItemIds).forEach(id => {
+        // In real app, this would come from API
+        const mockChange = Math.random() * 20 - 10 // Random -10% to +10%
+        dataCache.set(id, { changeLast48hPercent: mockChange })
+      })
+      setItemDataCache(dataCache)
     }
     fetchMethods()
   }, [item, itemPriceCache])
@@ -138,41 +190,10 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
     <div className="space-y-3">
       {acquisitionMethods.map((method) => {
         const isOpen = openMethods.has(method.id)
-        const hasRequiredItems = method.type !== 'trader' && method.data?.requiredItems && method.data.requiredItems.length > 0
+        const hasRequiredItems = method.data?.requiredItems && method.data.requiredItems.length > 0
         const shouldUseCollapsible = hasRequiredItems && method.data.requiredItems.length > 2
 
-        // Direct trader purchase - simple display
-        if (method.type === 'trader') {
-          return (
-            <div key={method.id} className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {getMethodIcon(method.type)}
-                  <div>
-                    <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                      {method.data.source}
-                    </span>
-                    <div className="text-xs text-neutral-500 dark:text-neutral-500">
-                      Direct Purchase
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                    {formatCurrency(method.cost, method.currency as any)}
-                  </div>
-                  {method.currency !== 'RUB' && (
-                    <div className="text-xs text-neutral-500 dark:text-neutral-500">
-                      ≈ {formatCurrency(method.costInRubles)}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )
-        }
-
-        // Craft/Barter with required items
+        // Craft/Barter with no required items
         if (!hasRequiredItems) {
           return (
             <div key={method.id} className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-3">
@@ -182,8 +203,17 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                        {method.details}
+                        {method.type === 'craft' ? 
+                          `${method.data.station.name} L${method.data.level}` :
+                          `${method.data.trader.name} LL${method.data.level}`
+                        }
                       </span>
+                      {method.type === 'craft' && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {formatDuration(method.data.duration)}
+                        </Badge>
+                      )}
                       {method.type === 'craft' && method.data?.station?.normalizedName === 'bitcoin-farm' && (
                         <Badge variant="secondary" className="text-xs bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300">
                           BTC L{bitcoinFarmLevel}
@@ -250,7 +280,11 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
                   </div>
                 </div>
               )}
-              <ItemTable requiredItems={method.data.requiredItems} itemPriceCache={itemPriceCache} />
+              <ItemTable 
+                requiredItems={method.data.requiredItems} 
+                itemPriceCache={itemPriceCache} 
+                itemDataCache={itemDataCache}
+              />
             </div>
           )
         }
@@ -305,7 +339,11 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
                     </div>
                   </div>
                 )}
-                <ItemTable requiredItems={method.data.requiredItems} itemPriceCache={itemPriceCache} />
+                <ItemTable 
+                  requiredItems={method.data.requiredItems} 
+                  itemPriceCache={itemPriceCache} 
+                  itemDataCache={itemDataCache}
+                />
               </div>
             </CollapsibleContent>
           </Collapsible>
