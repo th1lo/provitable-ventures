@@ -28,7 +28,8 @@ export default function TarkovPriceChecker() {
     grandTotal,
     categoryTotals,
     fetchPrices,
-    groupItemsByQuest
+    groupItemsByQuest,
+    overallPriceChange
   } = useTarkovData(gameMode)
 
   const toggleQuestExpansion = (questName: string) => {
@@ -139,6 +140,7 @@ export default function TarkovPriceChecker() {
           totalItems={itemPrices.length}
           restrictedItems={itemPrices.filter(item => isFleaMarketRestricted(item)).length}
           loading={loading}
+          overallPriceChange={overallPriceChange}
         />
 
         {/* Error Display */}

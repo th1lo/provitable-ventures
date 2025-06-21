@@ -16,8 +16,15 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [itemPriceCache, setItemPriceCache] = useState<Map<string, number>>(new Map())
   const [requiredItemsData, setRequiredItemsData] = useState<Map<string, ApiItem>>(new Map())
+  
+  // Cache for both game modes to avoid refetching
+  const [pvpPriceCache, setPvpPriceCache] = useState<Map<string, number>>(new Map())
+  const [pvePriceCache, setPvePriceCache] = useState<Map<string, number>>(new Map())
+  const [pvpRequiredItemsData, setPvpRequiredItemsData] = useState<Map<string, ApiItem>>(new Map())
+  const [pveRequiredItemsData, setPveRequiredItemsData] = useState<Map<string, ApiItem>>(new Map())
 
   const fetchPrices = useCallback(async () => {
+    const startTime = performance.now()
     setLoading(true)
     setError(null)
     
@@ -28,9 +35,10 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
       const bundledItemTerms = Object.values(BUNDLED_ITEMS).map(bundle => bundle.bundledSearchTerm)
       const allSearchTerms = [...searchTerms, ...bundledItemTerms]
       
-      console.log(`Fetching data for both PvP and PvE modes with ${allSearchTerms.length} search terms (including bundled items)`)
+      console.log(`🚀 Starting data fetch for both PvP and PvE modes with ${allSearchTerms.length} search terms`)
       
       // Fetch both PvP and PvE data simultaneously
+      const mainFetchStart = performance.now()
       const [pvpResponse, pveResponse] = await Promise.all([
         fetch('https://api.tarkov.dev/graphql', {
           method: 'POST',
@@ -53,6 +61,8 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
           })
         })
       ])
+      const mainFetchTime = performance.now() - mainFetchStart
+      console.log(`📊 Main item data fetch completed in ${mainFetchTime.toFixed(0)}ms`)
 
       if (!pvpResponse.ok || !pveResponse.ok) {
         throw new Error(`HTTP error! PvP status: ${pvpResponse.status}, PvE status: ${pveResponse.status}`)
@@ -104,19 +114,15 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
           console.warn(`No API data found for item: ${item.searchTerm}`)
         }
 
-        // Use the API item from current game mode for general data, fallback to the other mode
-        const primaryApiItem = gameMode === 'pvp' ? (pvpApiItem || pveApiItem) : (pveApiItem || pvpApiItem)
+        // Use PvP data as primary for general item data, fallback to PvE
+        const primaryApiItem = pvpApiItem || pveApiItem
         
         // Get prices from both modes
         const pvpPrice = pvpApiItem?.avg24hPrice || pvpApiItem?.lastLowPrice || 0
         const pvePrice = pveApiItem?.avg24hPrice || pveApiItem?.lastLowPrice || 0
         
-        console.log(`Mapping ${item.searchTerm}: PvP price = ₽${pvpPrice}, PvE price = ₽${pvePrice}`)
-        
-        // Check if this item has bundled item data (prefer current game mode)
-        const bundledApiItem = gameMode === 'pvp' ? 
-          (pvpBundledItemsMap.get(item.searchTerm) || pveBundledItemsMap.get(item.searchTerm)) :
-          (pveBundledItemsMap.get(item.searchTerm) || pvpBundledItemsMap.get(item.searchTerm))
+        // Use PvP bundled item data as primary, fallback to PvE
+        const bundledApiItem = pvpBundledItemsMap.get(item.searchTerm) || pveBundledItemsMap.get(item.searchTerm)
           
         const bundledItemData = bundledApiItem ? {
           id: bundledApiItem.id,
@@ -128,16 +134,12 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
           sellFor: bundledApiItem.sellFor || [],
           containsItems: bundledApiItem.containsItems || []
         } : undefined
-
-        if (bundledItemData) {
-          console.log(`Found bundled item for ${item.searchTerm}: ${bundledItemData.name}`)
-        }
         
         return {
           id: primaryApiItem?.id || `missing-${item.searchTerm}`,
           name: primaryApiItem?.name || item.name,
           shortName: primaryApiItem?.shortName || item.searchTerm,
-          avg24hPrice: gameMode === 'pvp' ? pvpPrice : pvePrice, // Current mode price for compatibility
+          avg24hPrice: pvpPrice, // Use PvP as default for compatibility
           lastLowPrice: primaryApiItem?.lastLowPrice || 0,
           changeLast48h: primaryApiItem?.changeLast48h || 0,
           changeLast48hPercent: primaryApiItem?.changeLast48hPercent ?? undefined,
@@ -150,7 +152,7 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
           barters: primaryApiItem?.bartersFor || [],
           fleaMarketFee: primaryApiItem?.fleaMarketFee,
           sellFor: primaryApiItem?.sellFor || [],
-          gameMode: gameMode,
+          gameMode: 'pvp', // Default to PvP, will be updated based on current mode
           pvpPrice: pvpPrice, // Always store both prices
           pvePrice: pvePrice, // Always store both prices
           bundledItem: bundledItemData
@@ -174,48 +176,105 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
         }
       })
 
-      console.log(`Fetching prices for ${requiredItemIds.size} required items (including bundled requirements)`)
+      console.log(`🔍 Fetching prices for ${requiredItemIds.size} required items for both game modes`)
 
-      // Fetch prices for all required items using game mode specific pricing
-      const priceCache = await fetchItemPrices(Array.from(requiredItemIds), gameMode)
-      setItemPriceCache(priceCache)
+      // Fetch prices for all required items for BOTH game modes simultaneously
+      const pricesFetchStart = performance.now()
+      const [pvpPriceCacheData, pvePriceCacheData, pvpRequiredData, pveRequiredData] = await Promise.all([
+        fetchItemPrices(Array.from(requiredItemIds), 'pvp'),
+        fetchItemPrices(Array.from(requiredItemIds), 'pve'),
+        fetchRequiredItemsData(Array.from(requiredItemIds), 'pvp'),
+        fetchRequiredItemsData(Array.from(requiredItemIds), 'pve')
+      ])
+      const pricesFetchTime = performance.now() - pricesFetchStart
+      console.log(`💰 Required items data fetch completed in ${pricesFetchTime.toFixed(0)}ms`)
 
-      // Fetch complete data for required items (including price change data)
-      const requiredItemsFullData = await fetchRequiredItemsData(Array.from(requiredItemIds), gameMode)
-      setRequiredItemsData(requiredItemsFullData)
+      // Store both caches
+      setPvpPriceCache(pvpPriceCacheData)
+      setPvePriceCache(pvePriceCacheData)
+      setPvpRequiredItemsData(pvpRequiredData)
+      setPveRequiredItemsData(pveRequiredData)
 
-      // Calculate cheapest acquisition methods for flea market restricted items or items with no price
+      // Set initial caches to PvP data
+      setItemPriceCache(pvpPriceCacheData)
+      setRequiredItemsData(pvpRequiredData)
+
+      // Calculate cheapest acquisition methods for flea market restricted items for both modes
+      const acquisitionStart = performance.now()
       for (const item of mappedPrices) {
         const isRestricted = isFleaMarketRestricted(item)
-        const currentPrice = gameMode === 'pvp' ? item.pvpPrice : item.pvePrice
-        console.log(`${item.shortName}: fleaRestricted=${isRestricted}, pvpPrice=${item.pvpPrice}, pvePrice=${item.pvePrice}, hasBundled=${!!item.bundledItem}`)
         
-        if (isRestricted || currentPrice === 0) {
-          console.log(`Calculating acquisition methods for ${item.shortName} (including bundled options)`)
-          const cheapestMethod = await findCheapestAcquisitionMethod(item, priceCache)
+        if (isRestricted || (item.pvpPrice === 0 && item.pvePrice === 0)) {
+          // Calculate for PvP mode by default
+          const cheapestMethod = await findCheapestAcquisitionMethod(item, pvpPriceCacheData)
           item.cheapestAcquisitionMethod = cheapestMethod
-          console.log(`Cheapest acquisition for ${item.shortName}:`, cheapestMethod)
         }
       }
+      const acquisitionTime = performance.now() - acquisitionStart
+      console.log(`⚡ Acquisition methods calculated in ${acquisitionTime.toFixed(0)}ms`)
 
       setItemPrices(mappedPrices)
       setLastUpdated(new Date())
+      
+      const totalTime = performance.now() - startTime
+      console.log(`✅ Total initial load completed in ${totalTime.toFixed(0)}ms (${(totalTime/1000).toFixed(1)}s)`)
     } catch (err) {
       console.error('Error fetching prices:', err)
       setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {
       setLoading(false)
     }
-  }, [gameMode])
+  }, []) // No dependencies - fetch data once
 
   useEffect(() => {
     fetchPrices()
   }, [fetchPrices])
 
+  // Handle game mode changes efficiently using cached data
+  useEffect(() => {
+    // Only run if we have data and both caches are ready
+    if (itemPrices.length === 0 || pvpPriceCache.size === 0 || pvePriceCache.size === 0) return
+    
+    // Only run if the current itemPrices don't match the gameMode (avoid unnecessary updates)
+    if (itemPrices.length > 0 && itemPrices[0].gameMode === gameMode) return
+
+    const updateGameModeData = async () => {
+      // Switch to the appropriate cached data instantly
+      const currentPriceCache = gameMode === 'pvp' ? pvpPriceCache : pvePriceCache
+      const currentRequiredData = gameMode === 'pvp' ? pvpRequiredItemsData : pveRequiredItemsData
+      
+      setItemPriceCache(currentPriceCache)
+      setRequiredItemsData(currentRequiredData)
+
+      // Update item prices and recalculate acquisition methods for flea restricted items
+      const updatedItemPrices = await Promise.all(itemPrices.map(async (item) => {
+        const updatedItem = {
+          ...item,
+          gameMode: gameMode,
+          avg24hPrice: (gameMode === 'pvp' ? item.pvpPrice : item.pvePrice) || 0
+        }
+
+        // Recalculate acquisition methods for flea restricted items with new game mode pricing
+        const isRestricted = isFleaMarketRestricted(item)
+        const currentPrice = gameMode === 'pvp' ? item.pvpPrice : item.pvePrice
+        
+        if (isRestricted || currentPrice === 0) {
+          const cheapestMethod = await findCheapestAcquisitionMethod(item, currentPriceCache)
+          updatedItem.cheapestAcquisitionMethod = cheapestMethod
+        }
+
+        return updatedItem
+      }))
+      
+      setItemPrices(updatedItemPrices)
+    }
+
+    updateGameModeData()
+  }, [gameMode, itemPrices, pvpPriceCache, pvePriceCache, pvpRequiredItemsData, pveRequiredItemsData]) // Switch and recalculate using cached data
+
   // Computed values - use the appropriate price based on game mode consistently
   const grandTotal = itemPrices.reduce((sum, item) => {
     const value = getTotalValue(item, gameMode)
-    console.log(`${item.shortName} (${item.category}): ₽${value.toLocaleString()}`)
     return sum + value
   }, 0)
 
@@ -224,6 +283,24 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
     acc[item.category] = (acc[item.category] || 0) + value
     return acc
   }, {} as Record<string, number>)
+
+  // Calculate overall price development change (weighted by item values)
+  const priceChangeCalculation = itemPrices.length > 0 ? itemPrices.reduce((acc, item) => {
+    const itemValue = getTotalValue(item, gameMode)
+    const priceChange = item.changeLast48hPercent
+    
+    // Only include items with valid price change data and non-zero values
+    if (priceChange !== undefined && priceChange !== null && itemValue > 0) {
+      acc.totalWeightedChange += (priceChange * itemValue)
+      acc.totalValue += itemValue
+    }
+    
+    return acc
+  }, { totalWeightedChange: 0, totalValue: 0 }) : { totalWeightedChange: 0, totalValue: 0 }
+
+  const overallPriceChange = priceChangeCalculation.totalValue > 0 
+    ? priceChangeCalculation.totalWeightedChange / priceChangeCalculation.totalValue 
+    : 0
 
   const groupItemsByQuest = () => {
     const grouped = itemPrices.reduce((acc, item) => {
@@ -259,6 +336,7 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
     // Computed values
     grandTotal,
     categoryTotals,
+    overallPriceChange,
     
     // Functions
     fetchPrices,

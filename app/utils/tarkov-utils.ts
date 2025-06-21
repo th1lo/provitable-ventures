@@ -49,7 +49,6 @@ export const isFleaMarketRestricted = (item: ItemPrice) => {
 export const getTotalValue = (item: ItemPrice, gameMode: 'pvp' | 'pve' = 'pvp') => {
   // For flea market restricted items, ALWAYS use cheapest acquisition method first
   if (isFleaMarketRestricted(item) && item.cheapestAcquisitionMethod?.costInRubles) {
-    console.log(`Using acquisition method for ${item.shortName}: ₽${item.cheapestAcquisitionMethod.costInRubles}`);
     return item.cheapestAcquisitionMethod.costInRubles * item.quantity
   }
   
@@ -57,18 +56,15 @@ export const getTotalValue = (item: ItemPrice, gameMode: 'pvp' | 'pve' = 'pvp') 
   if (gameMode === 'pve') {
     const price = item.pvePrice || 0
     if (price > 0) {
-      console.log(`Using PvE price for ${item.shortName}: ₽${price}`);
       return price * item.quantity
     }
   } else {
     const price = item.pvpPrice || 0
     if (price > 0) {
-      console.log(`Using PvP price for ${item.shortName}: ₽${price}`);
       return price * item.quantity
     }
   }
   
-  console.log(`No price found for ${item.shortName}, returning 0`);
   return 0
 }
 
@@ -198,15 +194,6 @@ export const calculateBundledItemCost = async (
     
     // Net cost = what we pay - what we get back from selling all parts (except REAP-IR)
     const netCost = barterCost - partsAnalysis.totalSellValue;
-    
-    console.log(`Bundled barter analysis for ${bundledItem.shortName}:`);
-    console.log(`  Barter cost: ₽${barterCost.toLocaleString()}`);
-    console.log(`  Market price: ₽${bundledItem.avg24hPrice?.toLocaleString() || 0}`);
-    console.log(`  Parts analysis: ${partsAnalysis.weaponParts.length} parts`);
-    console.log(`  Total sellable value: ₽${partsAnalysis.totalSellValue.toLocaleString()}`);
-    console.log(`  - Flea sell value: ₽${partsAnalysis.fleaSellValue.toLocaleString()}`);
-    console.log(`  - Trader sell value: ₽${partsAnalysis.traderSellValue.toLocaleString()}`);
-    console.log(`  Net cost: ₽${netCost.toLocaleString()}`);
     
     if (netCost < bestNetCost) {
       bestNetCost = netCost;

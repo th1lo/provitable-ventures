@@ -8,6 +8,7 @@ interface TarkovSummaryProps {
   totalItems: number
   restrictedItems: number
   loading?: boolean
+  overallPriceChange: number
 }
 
 export const TarkovSummary: React.FC<TarkovSummaryProps> = ({
@@ -15,11 +16,9 @@ export const TarkovSummary: React.FC<TarkovSummaryProps> = ({
   categoryTotals,
   totalItems,
   restrictedItems,
-  loading = false
+  loading = false,
+  overallPriceChange
 }) => {
-  // Mock price change for demonstration (in real app, this would come from props)
-  const overallPriceChange = 2.3 // +2.3% overall price increase
-
   const getPriceChangeBadge = (change: number) => {
     if (loading) {
       return (
