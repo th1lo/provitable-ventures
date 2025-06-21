@@ -122,10 +122,9 @@ export default function FleaRestrictedItemTable({ gameMode }: FleaRestrictedItem
                 changeLast48h: part.changeLast48h
               }))
           }
-        } catch (error) {
-          console.error('Error processing bundled item:', error)
-          return null
-        }
+                    } catch {
+        return null
+      }
       })
       .filter(item => item !== null)
 
@@ -247,11 +246,10 @@ export default function FleaRestrictedItemTable({ gameMode }: FleaRestrictedItem
         ))}
       </div>
     )
-  } catch (error) {
-    console.error('Error rendering FleaRestrictedItemTable:', error)
+  } catch {
     return (
       <div className="text-center text-red-400 py-8">
-        Error loading data. Please check console for details.
+        Error loading data.
       </div>
     )
   }

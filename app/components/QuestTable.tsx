@@ -166,9 +166,9 @@ const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, required
         
         const methods = await getAllAcquisitionMethods(item, gameModePriceCache)
         setAcquisitionMethods(methods as AcquisitionMethod[])
-      } catch (error) {
-        console.error('Error fetching acquisition methods:', error)
-      } finally {
+              } catch {
+          // Error fetching acquisition methods
+        } finally {
         setLoading(false)
       }
     }
@@ -204,7 +204,7 @@ const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, required
 
           return (
             <Collapsible key={method.id} open={isOpen} onOpenChange={() => toggleMethod(method.id)}>
-              <CollapsibleTrigger className="w-full p-3 sm:p-4 bg-neutral-50 dark:bg-neutral-800/70 hover:bg-neutral-100 dark:hover:bg-neutral-700/40 rounded-lg border border-neutral-200 dark:border-neutral-700 transition-colors">
+              <CollapsibleTrigger className="w-full p-4 bg-neutral-50 dark:bg-neutral-800/70 hover:bg-neutral-100 dark:hover:bg-neutral-700/40 rounded-lg border border-neutral-200 dark:border-neutral-700 transition-colors">
                 <div className="flex sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-4 sm:gap-3 min-w-0 flex-1">
                     <ChevronDown className={`h-5 w-5 text-neutral-600 dark:text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -428,7 +428,7 @@ const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, required
             </CollapsibleTrigger>
 
             <CollapsibleContent>
-              <div className="mt-3 sm:mt-4 px-2 sm:px-0">
+              <div className="mt-3 sm:mt-4">
                 {/* Quest unlock warning */}
                 {method.type === 'barter' && method.data && 'taskUnlock' in method.data && method.data.taskUnlock && (
                   <div className="mb-3 p-2 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded">

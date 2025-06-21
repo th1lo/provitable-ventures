@@ -117,11 +117,11 @@ export default function TarkovPriceChecker() {
               <select 
                 value={bitcoinFarmLevel} 
                 onChange={(e) => setBitcoinFarmLevel(Number(e.target.value))}
-                className="bg-transparent border border-neutral-300 dark:border-neutral-600 rounded px-2 py-1 text-sm font-medium text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
+                className="bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded px-2 py-1 text-sm font-medium text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
               >
-                <option value={1}>Level 1</option>
-                <option value={2}>Level 2</option>
-                <option value={3}>Level 3</option>
+                <option value={1} className="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Level 1</option>
+                <option value={2} className="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Level 2</option>
+                <option value={3} className="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Level 3</option>
               </select>
             </div>
             

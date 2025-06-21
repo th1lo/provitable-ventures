@@ -62,9 +62,9 @@ export const TarkovSummary: React.FC<TarkovSummaryProps> = ({
               {loading ? (
                 <div className="h-12 sm:h-16 md:h-20 w-48 sm:w-56 md:w-64 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse"></div>
               ) : (
-                <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-neutral-900 dark:text-neutral-100">
-                  {formatCurrency(grandTotal)}
-                </div>
+              <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-neutral-900 dark:text-neutral-100">
+                {formatCurrency(grandTotal)}
+              </div>
               )}
               {getPriceChangeBadge(overallPriceChange)}
             </div>
@@ -82,7 +82,7 @@ export const TarkovSummary: React.FC<TarkovSummaryProps> = ({
                 {loading ? (
                   <div className="h-6 sm:h-8 w-8 sm:w-12 bg-neutral-200 dark:bg-neutral-600 rounded animate-pulse"></div>
                 ) : (
-                  <span className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">{totalItems}</span>
+                <span className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">{totalItems}</span>
                 )}
               </div>
               <p className="text-xs text-neutral-500 dark:text-neutral-500 uppercase font-medium">
@@ -95,7 +95,7 @@ export const TarkovSummary: React.FC<TarkovSummaryProps> = ({
                 {loading ? (
                   <div className="h-6 sm:h-8 w-8 sm:w-12 bg-neutral-200 dark:bg-neutral-600 rounded animate-pulse"></div>
                 ) : (
-                  <span className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">{restrictedItems}</span>
+                <span className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">{restrictedItems}</span>
                 )}
               </div>
               <p className="text-xs text-neutral-500 dark:text-neutral-500 uppercase font-medium">
@@ -122,24 +122,24 @@ export const TarkovSummary: React.FC<TarkovSummaryProps> = ({
           ))
         ) : (
           Object.entries(categoryTotals).map(([category, total]) => {
-            const percentage = grandTotal > 0 ? (total / grandTotal) * 100 : 0
-            return (
-              <div key={category} className="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-3 sm:p-4">
-                <div className="text-center">
-                  <div className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-1">
-                    {formatCurrency(total)}
-                  </div>
+          const percentage = grandTotal > 0 ? (total / grandTotal) * 100 : 0
+          return (
+            <div key={category} className="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-3 sm:p-4">
+              <div className="text-center">
+                <div className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-1">
+                  {formatCurrency(total)}
+                </div>
                   <div className="flex flex-col sm:flex-row sm:gap-2 items-center justify-center gap-1 mb-1">
-                    <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium truncate">
-                      {category}
-                    </p>
-                    <span className="text-xs text-neutral-500 dark:text-neutral-500">
-                      {percentage.toFixed(0)}%
-                    </span>
-                  </div>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium truncate">
+                    {category}
+                  </p>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-500">
+                    {percentage.toFixed(0)}%
+                  </span>
                 </div>
               </div>
-            )
+            </div>
+          )
           })
         )}
       </div>

@@ -114,9 +114,8 @@ export const fetchItemPrices = async (itemIds: string[], gameMode: 'pvp' | 'pve'
     }
 
     return priceMap
-  } catch (error) {
-    console.error('Failed to fetch item prices:', error)
-    return new Map()
+      } catch {
+      return new Map()
   }
 }
 
@@ -148,9 +147,8 @@ export const fetchRequiredItemsData = async (itemIds: string[], gameMode: 'pvp' 
     }
 
     return itemDataMap
-  } catch (error) {
-    console.error('Failed to fetch required items data:', error)
-    return new Map()
+      } catch {
+      return new Map()
   }
 }
 

@@ -208,10 +208,10 @@ export const TRADER_RESET_TIMES: Record<string, number> = {
 
 // Quest wiki links
 export const QUEST_WIKI_LINKS: Record<string, string> = {
-  'Profitable Ventures': 'https://escapefromtarkov.fandom.com/wiki/Profitable_ventures',
-  'Safety Guarantee': 'https://escapefromtarkov.fandom.com/wiki/Safety_guarantee', 
-  'Never Too Late To Learn': 'https://escapefromtarkov.fandom.com/wiki/Never_too_late_to_learn',
-  'Get a Foothold': 'https://escapefromtarkov.fandom.com/wiki/Get_a_foothold',
-  'Profit Retention': 'https://escapefromtarkov.fandom.com/wiki/Profit_retention',
-  'A Life Lesson': 'https://escapefromtarkov.fandom.com/wiki/A_life_lesson'
+    'Profitable Ventures': 'https://escapefromtarkov.fandom.com/wiki/Profitable_Venture',
+  'Safety Guarantee': 'https://escapefromtarkov.fandom.com/wiki/Safety_Guarantee',
+  'Never Too Late To Learn': 'https://escapefromtarkov.fandom.com/wiki/Never_Too_Late_To_Learn',
+  'Get a Foothold': 'https://escapefromtarkov.fandom.com/wiki/Get_a_Foothold',
+  'Profit Retention': 'https://escapefromtarkov.fandom.com/wiki/Profit_Retention',
+  'A Life Lesson': 'https://escapefromtarkov.fandom.com/wiki/A_Life_Lesson'
 } 
