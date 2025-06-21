@@ -5,47 +5,13 @@ import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 import { useState } from 'react'
+import Image from 'next/image'
 import { ItemPrice, GameMode } from '../types/tarkov'
 import { getTotalValue, analyzeWeaponParts } from '../utils/tarkov-utils'
 import { ItemTable, type TableItem } from './shared'
 
 interface FleaRestrictedItemTableProps {
   gameMode: GameMode
-}
-
-interface ProcessedQuest {
-  name: string
-  items: Array<{
-    name: string
-    searchTerm: string
-    imageUrl: string
-    quantity: number
-    unitPrice: number
-    totalValue: number
-    canSellOnFlea: boolean
-    change?: string
-    acquisitionMethod?: string
-  }>
-  totalCost: number
-}
-
-interface BundledItemData {
-  targetItemId: string
-  netCostPerItem: number
-  barterCost: number
-  sellValue: number
-  traderTotal: number
-  requiredItems: Array<{
-    item: { name: string; image: string }
-    count: number
-    totalPrice: number
-  }>
-  fleaMarketParts: Array<{
-    item: { name: string; image: string }
-    count: number
-    fleaPrice: number
-    sellValue: number
-  }>
 }
 
 export default function FleaRestrictedItemTable({ gameMode }: FleaRestrictedItemTableProps) {
@@ -131,7 +97,7 @@ export default function FleaRestrictedItemTable({ gameMode }: FleaRestrictedItem
             barterCost: bundledDetails.barterCost || 0,
             sellValue: weaponPartsAnalysis?.totalSellValue || 0,
             traderTotal: weaponPartsAnalysis?.traderSellValue || 0,
-            requiredItems: (bundledDetails.requiredItems || []).map(req => {
+            requiredItems: (bundledDetails.requiredItems || []).map((req: { item?: { id?: string; name?: string; iconLink?: string }; count?: number }) => {
               const itemData = itemPrices.find(item => item.id === req.item?.id)
               return {
                 item: { 
@@ -139,13 +105,13 @@ export default function FleaRestrictedItemTable({ gameMode }: FleaRestrictedItem
                   image: req.item?.iconLink || ''
                 },
                 count: req.count || 0,
-                totalPrice: ((itemPriceCache?.get(req.item?.id) || 0) * (req.count || 0)),
+                totalPrice: ((itemPriceCache?.get(req.item?.id || '') || 0) * (req.count || 0)),
                 changeLast48hPercent: itemData?.changeLast48hPercent
               }
             }),
             fleaMarketParts: (weaponPartsAnalysis?.weaponParts || [])
-              .filter(part => part.recommendFlea && !part.isKeepForQuest)
-              .map(part => ({
+              .filter((part: { recommendFlea?: boolean; isKeepForQuest?: boolean }) => part.recommendFlea && !part.isKeepForQuest)
+              .map((part: { name?: string; iconLink?: string; count?: number; fleaPrice?: number; sellValue?: number; changeLast48h?: number }) => ({
                 item: {
                   name: part.name || 'Unknown Part',
                   image: part.iconLink || ''
@@ -211,9 +177,11 @@ export default function FleaRestrictedItemTable({ gameMode }: FleaRestrictedItem
                           {/* Item Image & Info */}
                           <div className="flex items-center gap-3 flex-1">
                             {item.imageUrl && (
-                              <img 
+                              <Image 
                                 src={item.imageUrl} 
                                 alt={item.name}
+                                width={64}
+                                height={64}
                                 className="w-12 h-12 sm:w-16 sm:h-16 rounded bg-gray-600 object-contain"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement
@@ -290,7 +258,28 @@ export default function FleaRestrictedItemTable({ gameMode }: FleaRestrictedItem
 }
 
 // Separate component for bundled item breakdown
-function BundledItemBreakdown({ bundledItem, allItemPrices }: { bundledItem: any, allItemPrices: ItemPrice[] }) {
+function BundledItemBreakdown({ bundledItem, allItemPrices }: { 
+  bundledItem: {
+    barterCost?: number;
+    sellValue?: number;
+    netCostPerItem?: number;
+    traderTotal?: number;
+    requiredItems?: Array<{
+      item?: { name?: string; image?: string };
+      count?: number;
+      totalPrice?: number;
+      changeLast48hPercent?: number;
+    }>;
+    fleaMarketParts?: Array<{
+      item?: { name?: string; image?: string };
+      count?: number;
+      fleaPrice?: number;
+      sellValue?: number;
+      changeLast48h?: number;
+    }>;
+  }, 
+  allItemPrices: ItemPrice[] 
+}) {
   if (!bundledItem) {
     return <div className="text-gray-400">No bundled item data available.</div>
   }
@@ -314,11 +303,11 @@ function BundledItemBreakdown({ bundledItem, allItemPrices }: { bundledItem: any
       </div>
 
       {/* Required Items */}
-      {bundledItem.requiredItems?.length > 0 && (
+      {bundledItem.requiredItems?.length && bundledItem.requiredItems.length > 0 && (
         <div>
           <h4 className="font-semibold text-white mb-3">Required Items:</h4>
           <ItemTable
-            items={bundledItem.requiredItems.map((reqItem: any): TableItem => ({
+            items={bundledItem.requiredItems.map((reqItem): TableItem => ({
               id: `bundled-req-${reqItem.item?.name || 'unknown'}`,
               image: reqItem.item?.image,
               name: reqItem.item?.name || 'Unknown Item',
@@ -336,11 +325,11 @@ function BundledItemBreakdown({ bundledItem, allItemPrices }: { bundledItem: any
       )}
 
       {/* Flea Market Items */}
-      {bundledItem.fleaMarketParts?.length > 0 && (
+      {bundledItem.fleaMarketParts?.length && bundledItem.fleaMarketParts.length > 0 && (
         <div>
           <h4 className="font-semibold text-white mb-3">Sell on Flea Market:</h4>
           <ItemTable
-            items={bundledItem.fleaMarketParts.map((part: any): TableItem => ({
+            items={bundledItem.fleaMarketParts.map((part): TableItem => ({
               id: `bundled-part-${part.item?.name || 'unknown'}`,
               image: part.item?.image,
               name: part.item?.name || 'Unknown Part',
@@ -359,7 +348,7 @@ function BundledItemBreakdown({ bundledItem, allItemPrices }: { bundledItem: any
       )}
 
       {/* Trader Items Summary */}
-      {bundledItem.traderTotal > 0 && (
+      {bundledItem.traderTotal && bundledItem.traderTotal > 0 && (
         <div className="bg-gray-700 rounded p-3">
           <div className="flex justify-between items-center">
             <span className="text-gray-300">Remaining parts to traders:</span>

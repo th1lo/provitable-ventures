@@ -43,7 +43,7 @@ export default function TarkovPriceChecker() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-8">
+      <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-8 md:max-w-5xl">
         
         {/* Header */}
         <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 sm:p-6">
@@ -87,7 +87,7 @@ export default function TarkovPriceChecker() {
               <Button 
                 onClick={fetchPrices} 
                 disabled={loading}
-                className="bg-neutral-900 hover:bg-neutral-800 text-white w-full sm:w-auto"
+                className="bg-neutral-900 hover:bg-neutral-800 text-white w-auto"
               >
                 {loading ? (
                   <>
@@ -138,6 +138,7 @@ export default function TarkovPriceChecker() {
           categoryTotals={categoryTotals}
           totalItems={itemPrices.length}
           restrictedItems={itemPrices.filter(item => isFleaMarketRestricted(item)).length}
+          loading={loading}
         />
 
         {/* Error Display */}
@@ -178,7 +179,6 @@ export default function TarkovPriceChecker() {
                   questName={questName}
                   items={items}
                   isExpanded={expandedQuests.has(questName)}
-                  bitcoinFarmLevel={bitcoinFarmLevel}
                   itemPriceCache={itemPriceCache}
                   gameMode={gameMode}
                   onToggleExpansion={toggleQuestExpansion}

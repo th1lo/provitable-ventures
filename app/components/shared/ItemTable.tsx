@@ -140,32 +140,20 @@ export const ItemTable: React.FC<ItemTableProps> = ({
                   {/* Image */}
                   <td className="py-2 px-2 sm:py-2.5 sm:px-3">
                     {item.image ? (
-                      isDark ? (
-                        <img 
-                          src={item.image} 
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 flex-shrink-0">
+                        <Image
+                          src={item.image}
                           alt={item.name}
-                          className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-gray-600 object-contain"
+                          width={40}
+                          height={40}
+                          className="object-contain w-full h-full"
                           onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.style.display = 'none'
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
                           }}
+                          unoptimized={true}
                         />
-                      ) : (
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 flex-shrink-0">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            width={40}
-                            height={40}
-                            className="object-contain w-full h-full"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                            unoptimized={true}
-                          />
-                        </div>
-                      )
+                      </div>
                     ) : null}
                   </td>
                   

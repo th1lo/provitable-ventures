@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
-import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { ChevronDown, ChevronUp, ExternalLink, TrendingUp, TrendingDown, Minus, Hammer, ArrowRightLeft, ShoppingCart } from 'lucide-react'
-import { ItemPrice, GameMode, Craft, Barter } from '../types/tarkov'
-import { formatCurrency, isFleaMarketRestricted, getTotalValue, analyzeWeaponParts, getAllAcquisitionMethods } from '../utils/tarkov-utils'
+import { ChevronDown, ExternalLink, TrendingUp, TrendingDown, Minus, Hammer, ArrowRightLeft} from 'lucide-react'
+import { ItemPrice, GameMode } from '../types/tarkov'
+import { formatCurrency, isFleaMarketRestricted, getTotalValue, getAllAcquisitionMethods } from '../utils/tarkov-utils'
 import { QUEST_WIKI_LINKS } from '../constants/tarkov-data'
 import { ItemTable, type TableItem } from './shared'
 
@@ -12,12 +11,75 @@ interface QuestTableProps {
   questName: string
   items: ItemPrice[]
   isExpanded: boolean
-  bitcoinFarmLevel: number
   itemPriceCache: Map<string, number>
   gameMode: GameMode
   onToggleExpansion: (questName: string) => void
   allItemPrices: ItemPrice[]
-  requiredItemsData?: Map<string, any>
+  requiredItemsData?: Map<string, { changeLast48hPercent?: number; changeLast48h?: number; name?: string; shortName?: string }>
+}
+
+// Types for acquisition methods
+interface RequiredItem {
+  item: {
+    id: string
+    name: string
+    shortName: string
+    iconLink: string
+    wikiLink?: string
+  }
+  count: number
+}
+
+interface WeaponPart {
+  id: string
+  name: string
+  shortName: string
+  iconLink: string
+  count: number
+  fleaPrice: number
+  sellValue: number
+  changeLast48h?: number
+  recommendFlea: boolean
+  isKeepForQuest: boolean
+}
+
+interface BundledItemDetails {
+  trader: string
+  bundledItemShortName: string
+  netCost: number
+  barterCost: number
+  totalSellValue: number
+  fleaSellValue: number
+  traderSellValue: number
+  requiredItems: RequiredItem[]
+  weaponParts: WeaponPart[]
+}
+
+interface TraderData {
+  name: string
+  normalizedName: string
+}
+
+interface CraftData {
+  duration: number
+  requiredItems: RequiredItem[]
+}
+
+interface BarterData {
+  trader: TraderData
+  requiredItems: RequiredItem[]
+  taskUnlock?: {
+    name: string
+  }
+}
+
+interface AcquisitionMethod {
+  id: string
+  type: 'bundled' | 'craft' | 'barter'
+  details: string
+  costInRubles: number
+  bundledItemDetails?: BundledItemDetails
+  data?: CraftData | BarterData
 }
 
 const getPriceChangeBadge = (change: number | undefined) => {
@@ -48,14 +110,13 @@ const getPriceChangeBadge = (change: number | undefined) => {
 }
 
 // Component for detailed acquisition method analysis
-const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allItemPrices, requiredItemsData }: {
+const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, requiredItemsData }: {
   item: ItemPrice,
-  bitcoinFarmLevel: number,
   itemPriceCache: Map<string, number>,
   allItemPrices?: ItemPrice[],
-  requiredItemsData?: Map<string, any>
+  requiredItemsData?: Map<string, { changeLast48hPercent?: number; changeLast48h?: number; name?: string; shortName?: string }>
 }) => {
-  const [acquisitionMethods, setAcquisitionMethods] = useState<any[]>([])
+  const [acquisitionMethods, setAcquisitionMethods] = useState<AcquisitionMethod[]>([])
   const [openMethods, setOpenMethods] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
 
@@ -63,7 +124,7 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
     const fetchMethods = async () => {
       try {
         const methods = await getAllAcquisitionMethods(item, itemPriceCache)
-        setAcquisitionMethods(methods)
+        setAcquisitionMethods(methods as AcquisitionMethod[])
       } catch (error) {
         console.error('Error fetching acquisition methods:', error)
       } finally {
@@ -83,16 +144,6 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
     setOpenMethods(newOpen)
   }
 
-  const getMethodIcon = (type: string) => {
-    switch (type) {
-      case 'craft': return <Hammer className="h-4 w-4 text-blue-600" />
-      case 'barter': return <ArrowRightLeft className="h-4 w-4 text-green-600" />
-      case 'trader': return <ShoppingCart className="h-4 w-4 text-purple-600" />
-      case 'bundled': return <ArrowRightLeft className="h-4 w-4 text-orange-600" />
-      default: return null
-    }
-  }
-
   if (loading) {
     return <div className="text-sm text-neutral-500">Loading acquisition methods...</div>
   }
@@ -103,7 +154,7 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
 
   return (
     <div className="space-y-2">
-      {acquisitionMethods.map((method) => {
+      {acquisitionMethods.map((method: AcquisitionMethod) => {
         const isOpen = openMethods.has(method.id)
 
         // Bundled item collapsible
@@ -113,52 +164,59 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
           return (
             <Collapsible key={method.id} open={isOpen} onOpenChange={() => toggleMethod(method.id)}>
               <CollapsibleTrigger className="w-full p-3 sm:p-4 bg-neutral-50 dark:bg-neutral-800/70 hover:bg-neutral-100 dark:hover:bg-neutral-700/40 rounded-lg border border-neutral-200 dark:border-neutral-700 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <div className="flex sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-4 sm:gap-3 min-w-0 flex-1">
                     <ChevronDown className={`h-5 w-5 text-neutral-600 dark:text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     {/* Trader portrait with icon overlay */}
-                    <div className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-600 flex items-center justify-center flex-shrink-0 relative">
+                    <div className="flex md:flex-row items-center gap-3">
+                      <div className="flex flex-col md:flex-row items-center gap-2">
+                        <div className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-600 flex items-center justify-center flex-shrink-0 relative">
+                          <Image
+                            src={`https://tarkov.dev/images/traders/${bundled.trader.toLowerCase()}-portrait.png`}
+                            alt={bundled.trader}
+                            width={48}
+                            height={48}
+                            className="w-full h-full rounded object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = `https://via.placeholder.com/48x48/374151/9CA3AF?text=${bundled.trader.charAt(0)}`
+                            }}
+                          />
+                          {/* Barter icon in corner */}
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-neutral-800 dark:bg-neutral-700 rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-800">
+                            <ArrowRightLeft className="h-3 w-3 text-orange-500" />
+                          </div>
+                        </div>
 
-                      <img
-                        src={`https://tarkov.dev/images/traders/${bundled.trader.toLowerCase()}-portrait.png`}
-                        alt={bundled.trader}
-                        className="w-full h-full rounded object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.src = `https://via.placeholder.com/48x48/374151/9CA3AF?text=${bundled.trader.charAt(0)}`
-                        }}
-                      />
-                      {/* Barter icon in corner */}
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-neutral-800 dark:bg-neutral-700 rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-800">
-                        <ArrowRightLeft className="h-3 w-3 text-orange-500" />
+                        {/* Bundled item image */}
+                        <Image
+                          src={bundled.bundledItemShortName === 'M4A1 REAP-IR'
+                            ? 'https://assets.tarkov.dev/coltm4a1reapir0000000001-512.webp'
+                            : item.iconLink || ''
+                          }
+                          alt={bundled.bundledItemShortName}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-900 object-contain flex-shrink-0"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = item.iconLink || ''
+                          }}
+                        />
                       </div>
-                    </div>
 
-                    {/* Bundled item image */}
-                    <img
-                      src={bundled.bundledItemShortName === 'M4A1 REAP-IR'
-                        ? 'https://assets.tarkov.dev/coltm4a1reapir0000000001-512.webp'
-                        : item.iconLink || ''
-                      }
-                      alt={bundled.bundledItemShortName}
-                      className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-900 object-contain flex-shrink-0"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.src = item.iconLink || ''
-                      }}
-                    />
-
-                    <div className="text-left min-w-0 flex-1">
-                      <div className="font-semibold text-neutral-900 dark:text-neutral-100 text-sm sm:text-base">
-                        {bundled.bundledItemShortName}
-                      </div>
-                      <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-                        <div className="flex flex-wrap gap-1 sm:gap-2">
-                          <span>Net: {formatCurrency(bundled.netCost)}</span>
-                          <span>•</span>
-                          <span>Barter: {formatCurrency(bundled.barterCost)}</span>
-                          <span>•</span>
-                          <span>Sell: {formatCurrency(bundled.totalSellValue)}</span>
+                      <div className="text-left min-w-0 flex-1 max-w-[240px]">
+                        <div className="font-semibold text-neutral-900 dark:text-neutral-100 text-sm sm:text-base">
+                          {bundled.bundledItemShortName}
+                        </div>
+                        <div className="text-xs sm:text-sm  text-neutral-600 dark:text-neutral-400">
+                          <div className="flex flex-wrap gap-0">
+                            <span>Net: {formatCurrency(bundled.netCost)}</span>
+                            <span>•</span>
+                            <span>Barter: {formatCurrency(bundled.barterCost)}</span>
+                            <span>•</span>
+                            <span>Sell: {formatCurrency(bundled.totalSellValue)}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -179,7 +237,7 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
                   {bundled.requiredItems && bundled.requiredItems.length > 0 && (
                     <div>
                       <ItemTable
-                        items={bundled.requiredItems.map((req: any): TableItem => {
+                        items={bundled.requiredItems.map((req: RequiredItem): TableItem => {
                           const fleaPrice = itemPriceCache.get(req.item.id) || 0
                           const totalCost = fleaPrice * req.count
                           // Get price change data from requiredItemsData
@@ -211,13 +269,13 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
                       </h6>
 
                       {/* Flea Market Items */}
-                      {bundled.weaponParts.filter((part: any) => part.recommendFlea && !part.isKeepForQuest).length > 0 && (
+                      {bundled.weaponParts.filter((part: WeaponPart) => part.recommendFlea && !part.isKeepForQuest).length > 0 && (
                         <div className="mb-3">
                           <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2 px-1">
                             Sell on Flea Market ({formatCurrency(bundled.fleaSellValue)})
                           </div>
                           <ItemTable
-                            items={bundled.weaponParts.filter((part: any) => part.recommendFlea && !part.isKeepForQuest).map((part: any): TableItem => ({
+                            items={bundled.weaponParts.filter((part: WeaponPart) => part.recommendFlea && !part.isKeepForQuest).map((part: WeaponPart): TableItem => ({
                               id: part.id,
                               image: part.iconLink,
                               name: part.name,
@@ -265,13 +323,15 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
                   {/* Trader portrait with icon overlay */}
                   {method.data && 'trader' in method.data && method.data.trader && (
                     <div className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-600 flex items-center justify-center flex-shrink-0 relative">
-                      <img
+                      <Image
                         src={`https://tarkov.dev/images/traders/${method.data.trader.normalizedName.toLowerCase()}-portrait.png`}
                         alt={method.data.trader.name}
+                        width={48}
+                        height={48}
                         className="w-full h-full rounded object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
-                          target.src = `https://via.placeholder.com/48x48/374151/9CA3AF?text=${method.data.trader.name.charAt(0)}`
+                          target.src = `https://via.placeholder.com/48x48/374151/9CA3AF?text=${method.data && 'trader' in method.data ? method.data.trader.name.charAt(0) : 'T'}`
                         }}
                       />
                       {/* Method icon in corner */}
@@ -284,9 +344,11 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
                   {/* Workbench image for crafts */}
                   {method.type === 'craft' && (
                     <div className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-600 flex items-center justify-center flex-shrink-0 relative">
-                      <img
+                      <Image
                         src="https://assets.tarkov.dev/station-workbench.png"
                         alt="Workbench"
+                        width={48}
+                        height={48}
                         className="w-full h-full rounded object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
@@ -339,7 +401,7 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
                 {method.data?.requiredItems && method.data.requiredItems.length > 0 && (
                   <div>
                     <ItemTable
-                      items={method.data.requiredItems.map((req: any): TableItem => {
+                      items={method.data.requiredItems.map((req: RequiredItem): TableItem => {
                         const fleaPrice = itemPriceCache.get(req.item.id) || 0
                         const totalCost = fleaPrice * req.count
                         // Get price change data from requiredItemsData
@@ -375,7 +437,6 @@ export const QuestTable: React.FC<QuestTableProps> = ({
   questName,
   items,
   isExpanded,
-  bitcoinFarmLevel,
   itemPriceCache,
   gameMode,
   onToggleExpansion,
@@ -541,7 +602,6 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                     {/* Detailed acquisition method analysis */}
                     <ItemAcquisitionAnalysis
                       item={item}
-                      bitcoinFarmLevel={bitcoinFarmLevel}
                       itemPriceCache={itemPriceCache}
                       allItemPrices={allItemPrices}
                       requiredItemsData={requiredItemsData}
