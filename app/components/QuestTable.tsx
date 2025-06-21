@@ -251,7 +251,7 @@ const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, required
                           {bundled.bundledItemShortName}
                         </div>
                         <div className="text-xs sm:text-sm  text-neutral-600 dark:text-neutral-400">
-                          <div className="flex flex-wrap gap-0">
+                          <div className="flex flex-wrap gap-1">
                             <span>Net: {formatCurrency(bundled.netCost)}</span>
                             <span>•</span>
                             <span>Barter: {formatCurrency(bundled.barterCost)}</span>
