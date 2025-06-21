@@ -28,67 +28,96 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
       const bundledItemTerms = Object.values(BUNDLED_ITEMS).map(bundle => bundle.bundledSearchTerm)
       const allSearchTerms = [...searchTerms, ...bundledItemTerms]
       
-      // Update the query to support game modes
-      const queryWithGameMode = gameMode === 'pve' 
-        ? EXTENDED_GRAPHQL_QUERY.replace('items(names: $names)', 'items(names: $names, gameMode: pve)')
-        : EXTENDED_GRAPHQL_QUERY
+      console.log(`Fetching data for both PvP and PvE modes with ${allSearchTerms.length} search terms (including bundled items)`)
       
-      console.log(`Fetching data for ${gameMode.toUpperCase()} mode with ${allSearchTerms.length} search terms (including bundled items)`)
-      
-      const response = await fetch('https://api.tarkov.dev/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: queryWithGameMode,
-          variables: { names: allSearchTerms }
+      // Fetch both PvP and PvE data simultaneously
+      const [pvpResponse, pveResponse] = await Promise.all([
+        fetch('https://api.tarkov.dev/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: EXTENDED_GRAPHQL_QUERY, // PvP is default
+            variables: { names: allSearchTerms }
+          })
+        }),
+        fetch('https://api.tarkov.dev/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: EXTENDED_GRAPHQL_QUERY.replace('items(names: $names)', 'items(names: $names, gameMode: pve)'),
+            variables: { names: allSearchTerms }
+          })
         })
-      })
+      ])
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (!pvpResponse.ok || !pveResponse.ok) {
+        throw new Error(`HTTP error! PvP status: ${pvpResponse.status}, PvE status: ${pveResponse.status}`)
       }
 
-      const data = await response.json()
+      const [pvpData, pveData] = await Promise.all([
+        pvpResponse.json(),
+        pveResponse.json()
+      ])
       
-      if (data.errors) {
-        console.error('GraphQL errors:', data.errors)
-        throw new Error(data.errors.map((e: GraphQLError) => e.message).join(', '))
+      if (pvpData.errors || pveData.errors) {
+        console.error('GraphQL errors:', pvpData.errors || pveData.errors)
+        throw new Error((pvpData.errors || pveData.errors).map((e: GraphQLError) => e.message).join(', '))
       }
 
-      console.log(`Found ${data.data.items?.length || 0} items from API (including bundled items)`)
+      console.log(`Found ${pvpData.data.items?.length || 0} PvP items and ${pveData.data.items?.length || 0} PvE items from API`)
 
-      // Create a map of bundled items
-      const bundledItemsMap = new Map<string, ApiItem>()
+      // Create maps for bundled items for both game modes
+      const pvpBundledItemsMap = new Map<string, ApiItem>()
+      const pveBundledItemsMap = new Map<string, ApiItem>()
+      
       Object.entries(BUNDLED_ITEMS).forEach(([itemKey, bundle]) => {
-        const bundledApiItem = data.data.items.find((apiItem: ApiItem) => 
+        const pvpBundledApiItem = pvpData.data.items.find((apiItem: ApiItem) => 
           apiItem.name.toLowerCase().includes(bundle.bundledSearchTerm.toLowerCase()) ||
           apiItem.shortName.toLowerCase().includes(bundle.bundledSearchTerm.toLowerCase())
         )
-        if (bundledApiItem) {
-          bundledItemsMap.set(itemKey, bundledApiItem)
-        }
+        const pveBundledApiItem = pveData.data.items.find((apiItem: ApiItem) => 
+          apiItem.name.toLowerCase().includes(bundle.bundledSearchTerm.toLowerCase()) ||
+          apiItem.shortName.toLowerCase().includes(bundle.bundledSearchTerm.toLowerCase())
+        )
+        
+        if (pvpBundledApiItem) pvpBundledItemsMap.set(itemKey, pvpBundledApiItem)
+        if (pveBundledApiItem) pveBundledItemsMap.set(itemKey, pveBundledApiItem)
       })
 
-      // Map API results back to our item list
+      // Map API results back to our item list with both PvP and PvE prices
       const mappedPrices: ItemPrice[] = TARKOV_ITEMS.map(item => {
-        const apiItem = data.data.items.find((apiItem: ApiItem) => 
+        const pvpApiItem = pvpData.data.items.find((apiItem: ApiItem) => 
+          apiItem.name.toLowerCase().includes(item.searchTerm.toLowerCase()) ||
+          apiItem.shortName.toLowerCase().includes(item.searchTerm.toLowerCase())
+        )
+        
+        const pveApiItem = pveData.data.items.find((apiItem: ApiItem) => 
           apiItem.name.toLowerCase().includes(item.searchTerm.toLowerCase()) ||
           apiItem.shortName.toLowerCase().includes(item.searchTerm.toLowerCase())
         )
 
-        if (!apiItem) {
+        if (!pvpApiItem && !pveApiItem) {
           console.warn(`No API data found for item: ${item.searchTerm}`)
         }
 
-        // Use the actual API prices - prioritize avg24hPrice for more stable pricing
-        const basePrice = apiItem?.avg24hPrice || apiItem?.lastLowPrice || 0
+        // Use the API item from current game mode for general data, fallback to the other mode
+        const primaryApiItem = gameMode === 'pvp' ? (pvpApiItem || pveApiItem) : (pveApiItem || pvpApiItem)
         
-        console.log(`Mapping ${item.searchTerm}: API price = ₽${basePrice}, fleaFee = ${apiItem?.fleaMarketFee}`)
+        // Get prices from both modes
+        const pvpPrice = pvpApiItem?.avg24hPrice || pvpApiItem?.lastLowPrice || 0
+        const pvePrice = pveApiItem?.avg24hPrice || pveApiItem?.lastLowPrice || 0
         
-        // Check if this item has bundled item data
-        const bundledApiItem = bundledItemsMap.get(item.searchTerm)
+        console.log(`Mapping ${item.searchTerm}: PvP price = ₽${pvpPrice}, PvE price = ₽${pvePrice}`)
+        
+        // Check if this item has bundled item data (prefer current game mode)
+        const bundledApiItem = gameMode === 'pvp' ? 
+          (pvpBundledItemsMap.get(item.searchTerm) || pveBundledItemsMap.get(item.searchTerm)) :
+          (pveBundledItemsMap.get(item.searchTerm) || pvpBundledItemsMap.get(item.searchTerm))
+          
         const bundledItemData = bundledApiItem ? {
           id: bundledApiItem.id,
           name: bundledApiItem.name,
@@ -105,25 +134,25 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
         }
         
         return {
-          id: apiItem?.id || `missing-${item.searchTerm}`,
-          name: apiItem?.name || item.name,
-          shortName: apiItem?.shortName || item.searchTerm,
-          avg24hPrice: basePrice,
-          lastLowPrice: apiItem?.lastLowPrice || 0,
-          changeLast48h: apiItem?.changeLast48h || 0,
-          changeLast48hPercent: apiItem?.changeLast48hPercent ?? undefined,
-          updated: apiItem?.updated || new Date().toISOString(),
-          iconLink: apiItem?.iconLink || '',
-          wikiLink: apiItem?.wikiLink || '',
+          id: primaryApiItem?.id || `missing-${item.searchTerm}`,
+          name: primaryApiItem?.name || item.name,
+          shortName: primaryApiItem?.shortName || item.searchTerm,
+          avg24hPrice: gameMode === 'pvp' ? pvpPrice : pvePrice, // Current mode price for compatibility
+          lastLowPrice: primaryApiItem?.lastLowPrice || 0,
+          changeLast48h: primaryApiItem?.changeLast48h || 0,
+          changeLast48hPercent: primaryApiItem?.changeLast48hPercent ?? undefined,
+          updated: primaryApiItem?.updated || new Date().toISOString(),
+          iconLink: primaryApiItem?.iconLink || '',
+          wikiLink: primaryApiItem?.wikiLink || '',
           quantity: item.quantity,
           category: item.category,
-          crafts: apiItem?.craftsFor || [],
-          barters: apiItem?.bartersFor || [],
-          fleaMarketFee: apiItem?.fleaMarketFee,
-          sellFor: apiItem?.sellFor || [],
+          crafts: primaryApiItem?.craftsFor || [],
+          barters: primaryApiItem?.bartersFor || [],
+          fleaMarketFee: primaryApiItem?.fleaMarketFee,
+          sellFor: primaryApiItem?.sellFor || [],
           gameMode: gameMode,
-          pvpPrice: gameMode === 'pvp' ? basePrice : 0, // Only set if we're in PvP mode
-          pvePrice: gameMode === 'pve' ? basePrice : 0,  // Only set if we're in PvE mode
+          pvpPrice: pvpPrice, // Always store both prices
+          pvePrice: pvePrice, // Always store both prices
           bundledItem: bundledItemData
         }
       })
@@ -147,20 +176,21 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
 
       console.log(`Fetching prices for ${requiredItemIds.size} required items (including bundled requirements)`)
 
-      // Fetch prices for all required items
-      const priceCache = await fetchItemPrices(Array.from(requiredItemIds))
+      // Fetch prices for all required items using game mode specific pricing
+      const priceCache = await fetchItemPrices(Array.from(requiredItemIds), gameMode)
       setItemPriceCache(priceCache)
 
       // Fetch complete data for required items (including price change data)
-      const requiredItemsFullData = await fetchRequiredItemsData(Array.from(requiredItemIds))
+      const requiredItemsFullData = await fetchRequiredItemsData(Array.from(requiredItemIds), gameMode)
       setRequiredItemsData(requiredItemsFullData)
 
       // Calculate cheapest acquisition methods for flea market restricted items or items with no price
       for (const item of mappedPrices) {
         const isRestricted = isFleaMarketRestricted(item)
-        console.log(`${item.shortName}: fleaRestricted=${isRestricted}, basePrice=${item.avg24hPrice}, hasBundled=${!!item.bundledItem}`)
+        const currentPrice = gameMode === 'pvp' ? item.pvpPrice : item.pvePrice
+        console.log(`${item.shortName}: fleaRestricted=${isRestricted}, pvpPrice=${item.pvpPrice}, pvePrice=${item.pvePrice}, hasBundled=${!!item.bundledItem}`)
         
-        if (isRestricted || item.avg24hPrice === 0) {
+        if (isRestricted || currentPrice === 0) {
           console.log(`Calculating acquisition methods for ${item.shortName} (including bundled options)`)
           const cheapestMethod = await findCheapestAcquisitionMethod(item, priceCache)
           item.cheapestAcquisitionMethod = cheapestMethod

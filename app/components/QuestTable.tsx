@@ -110,20 +110,61 @@ const getPriceChangeBadge = (change: number | undefined) => {
 }
 
 // Component for detailed acquisition method analysis
-const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, requiredItemsData }: {
+const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, requiredItemsData, gameMode }: {
   item: ItemPrice,
   itemPriceCache: Map<string, number>,
   allItemPrices?: ItemPrice[],
-  requiredItemsData?: Map<string, { changeLast48hPercent?: number; changeLast48h?: number; name?: string; shortName?: string }>
+  requiredItemsData?: Map<string, { changeLast48hPercent?: number; changeLast48h?: number; name?: string; shortName?: string }>,
+  gameMode: GameMode
 }) => {
   const [acquisitionMethods, setAcquisitionMethods] = useState<AcquisitionMethod[]>([])
   const [openMethods, setOpenMethods] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
 
+  // Helper function to get the correct price based on game mode
+  const getRequiredItemPrice = (itemId: string) => {
+    // Try to find the item in allItemPrices to get game mode specific pricing
+    if (allItemPrices && allItemPrices.length > 0) {
+      const itemData = allItemPrices.find(priceItem => priceItem.id === itemId)
+      if (itemData) {
+        // For flea restricted items, use acquisition method cost
+        if (isFleaMarketRestricted(itemData) && itemData.cheapestAcquisitionMethod?.costInRubles) {
+          return itemData.cheapestAcquisitionMethod.costInRubles
+        }
+        // For flea available items, use game mode specific pricing
+        return gameMode === 'pve' ? (itemData.pvePrice || 0) : (itemData.pvpPrice || 0)
+      }
+    }
+    // Fallback to flea market price from cache
+    return itemPriceCache.get(itemId) || 0
+  }
+
   React.useEffect(() => {
     const fetchMethods = async () => {
       try {
-        const methods = await getAllAcquisitionMethods(item, itemPriceCache)
+        // Create a game mode specific price cache for acquisition methods
+        const gameModePriceCache = new Map<string, number>()
+        
+        // Populate the cache with game mode specific prices
+        if (allItemPrices && allItemPrices.length > 0) {
+          allItemPrices.forEach(priceItem => {
+            if (isFleaMarketRestricted(priceItem) && priceItem.cheapestAcquisitionMethod?.costInRubles) {
+              gameModePriceCache.set(priceItem.id, priceItem.cheapestAcquisitionMethod.costInRubles)
+            } else {
+              const price = gameMode === 'pve' ? (priceItem.pvePrice || 0) : (priceItem.pvpPrice || 0)
+              gameModePriceCache.set(priceItem.id, price)
+            }
+          })
+        }
+        
+        // Fallback to original price cache for items not in allItemPrices
+        itemPriceCache.forEach((price, itemId) => {
+          if (!gameModePriceCache.has(itemId)) {
+            gameModePriceCache.set(itemId, price)
+          }
+        })
+        
+        const methods = await getAllAcquisitionMethods(item, gameModePriceCache)
         setAcquisitionMethods(methods as AcquisitionMethod[])
       } catch (error) {
         console.error('Error fetching acquisition methods:', error)
@@ -132,7 +173,7 @@ const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, required
       }
     }
     fetchMethods()
-  }, [item, itemPriceCache])
+  }, [item, itemPriceCache, gameMode, allItemPrices])
 
   const toggleMethod = (methodId: string) => {
     const newOpen = new Set(openMethods)
@@ -238,8 +279,8 @@ const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, required
                     <div>
                       <ItemTable
                         items={bundled.requiredItems.map((req: RequiredItem): TableItem => {
-                          const fleaPrice = itemPriceCache.get(req.item.id) || 0
-                          const totalCost = fleaPrice * req.count
+                          const unitPrice = getRequiredItemPrice(req.item.id)
+                          const totalCost = unitPrice * req.count
                           // Get price change data from requiredItemsData
                           const requiredItemData = requiredItemsData?.get(req.item.id)
                           return {
@@ -248,7 +289,7 @@ const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, required
                             name: req.item.name,
                             shortName: req.item.shortName,
                             count: req.count,
-                            unitPrice: fleaPrice,
+                            unitPrice: unitPrice,
                             totalPrice: totalCost,
                             changeLast48hPercent: requiredItemData?.changeLast48hPercent,
                             wikiLink: req.item.wikiLink
@@ -402,8 +443,8 @@ const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, required
                   <div>
                     <ItemTable
                       items={method.data.requiredItems.map((req: RequiredItem): TableItem => {
-                        const fleaPrice = itemPriceCache.get(req.item.id) || 0
-                        const totalCost = fleaPrice * req.count
+                        const unitPrice = getRequiredItemPrice(req.item.id)
+                        const totalCost = unitPrice * req.count
                         // Get price change data from requiredItemsData
                         const requiredItemData = requiredItemsData?.get(req.item.id)
                         return {
@@ -412,7 +453,7 @@ const ItemAcquisitionAnalysis = ({ item, itemPriceCache, allItemPrices, required
                           name: req.item.name,
                           shortName: req.item.shortName,
                           count: req.count,
-                          unitPrice: fleaPrice,
+                          unitPrice: unitPrice,
                           totalPrice: totalCost,
                           changeLast48hPercent: requiredItemData?.changeLast48hPercent,
                           wikiLink: req.item.wikiLink
@@ -605,6 +646,7 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                       itemPriceCache={itemPriceCache}
                       allItemPrices={allItemPrices}
                       requiredItemsData={requiredItemsData}
+                      gameMode={gameMode}
                     />
                   </div>
                 ))}

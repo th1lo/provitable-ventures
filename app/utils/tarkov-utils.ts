@@ -88,15 +88,20 @@ export const getTraderResetTime = (traderName: string) => {
   return `${hours}h`
 }
 
-export const fetchItemPrices = async (itemIds: string[]): Promise<Map<string, number>> => {
+export const fetchItemPrices = async (itemIds: string[], gameMode: 'pvp' | 'pve' = 'pvp'): Promise<Map<string, number>> => {
   try {
+    // Create query for the specific game mode
+    const query = gameMode === 'pve' 
+      ? ITEM_PRICES_QUERY.replace('items(ids: $ids)', 'items(ids: $ids, gameMode: pve)')
+      : ITEM_PRICES_QUERY
+      
     const response = await fetch('https://api.tarkov.dev/graphql', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query: ITEM_PRICES_QUERY,
+        query: query,
         variables: { ids: itemIds }
       })
     })
@@ -119,15 +124,20 @@ export const fetchItemPrices = async (itemIds: string[]): Promise<Map<string, nu
   }
 }
 
-export const fetchRequiredItemsData = async (itemIds: string[]): Promise<Map<string, ApiItem>> => {
+export const fetchRequiredItemsData = async (itemIds: string[], gameMode: 'pvp' | 'pve' = 'pvp'): Promise<Map<string, ApiItem>> => {
   try {
+    // Create query for the specific game mode
+    const query = gameMode === 'pve' 
+      ? ITEM_PRICES_QUERY.replace('items(ids: $ids)', 'items(ids: $ids, gameMode: pve)')
+      : ITEM_PRICES_QUERY
+      
     const response = await fetch('https://api.tarkov.dev/graphql', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query: ITEM_PRICES_QUERY,
+        query: query,
         variables: { ids: itemIds }
       })
     })
