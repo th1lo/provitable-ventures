@@ -18,6 +18,8 @@ export interface ItemPrice {
   cheapestAcquisitionMethod?: {
     type: 'craft' | 'barter' | 'trader'
     cost: number
+    costInRubles: number
+    currency: string
     details: string
     id: string
   }

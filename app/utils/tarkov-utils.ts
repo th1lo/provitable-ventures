@@ -1,6 +1,13 @@
 import { ItemPrice, Craft, Barter, ApiItem } from '../types/tarkov'
 import { TRADER_RESET_TIMES, ITEM_PRICES_QUERY } from '../constants/tarkov-data'
 
+// Exchange rates (approximate, update as needed)
+const EXCHANGE_RATES = {
+  'USD': 140, // 1 USD = ~140 RUB
+  'EUR': 150, // 1 EUR = ~150 RUB
+  'RUB': 1
+}
+
 export const formatCurrency = (amount: number, currency: 'RUB' | 'USD' | 'EUR' = 'RUB') => {
   const formattedNumber = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 0,
@@ -14,6 +21,11 @@ export const formatCurrency = (amount: number, currency: 'RUB' | 'USD' | 'EUR' =
   }
   
   return `${symbols[currency]} ${formattedNumber}`
+}
+
+export const convertToRubles = (amount: number, currency: string): number => {
+  const rate = EXCHANGE_RATES[currency as keyof typeof EXCHANGE_RATES] || 1
+  return amount * rate
 }
 
 export const formatNumber = (num: number) => {
@@ -39,9 +51,9 @@ export const getTotalValue = (item: ItemPrice) => {
     return item.avg24hPrice * item.quantity
   }
   
-  // For items without flea market price, try acquisition method cost
-  if (item.cheapestAcquisitionMethod?.cost) {
-    return item.cheapestAcquisitionMethod.cost * item.quantity
+  // For items without flea market price, use cheapest acquisition method cost in rubles
+  if (item.cheapestAcquisitionMethod?.costInRubles) {
+    return item.cheapestAcquisitionMethod.costInRubles * item.quantity
   }
   
   // Fall back to last low price
@@ -125,19 +137,33 @@ export const getAllAcquisitionMethods = async (item: ItemPrice, priceCache: Map<
   const methods: Array<{
     type: 'craft' | 'barter' | 'trader'
     cost: number
+    costInRubles: number
+    currency: string
     details: string
     id: string
     data?: any
   }> = []
 
-  // Add direct trader purchases
+  // Add direct trader purchases (deduplicated)
   if (item.sellFor) {
+    const tradersSeen = new Set<string>()
+    
     for (const sellOption of item.sellFor) {
       if (sellOption.source !== 'flea-market' && sellOption.price > 0) {
+        // Skip if we already have this trader
+        if (tradersSeen.has(sellOption.source)) {
+          continue
+        }
+        tradersSeen.add(sellOption.source)
+        
+        const costInRubles = convertToRubles(sellOption.price, sellOption.currency)
+        
         methods.push({
           type: 'trader',
           cost: sellOption.price,
-          details: `${sellOption.source} (Direct Purchase)`,
+          costInRubles,
+          currency: sellOption.currency,
+          details: `${sellOption.source} (${formatCurrency(sellOption.price, sellOption.currency as any)})`,
           id: `${sellOption.source}-${item.id}`,
           data: sellOption
         })
@@ -152,6 +178,8 @@ export const getAllAcquisitionMethods = async (item: ItemPrice, priceCache: Map<
       methods.push({
         type: 'craft',
         cost,
+        costInRubles: cost, // Already in rubles
+        currency: 'RUB',
         details: `${craft.station.name} Level ${craft.level} (${formatDuration(craft.duration)})`,
         id: craft.id,
         data: craft
@@ -166,6 +194,8 @@ export const getAllAcquisitionMethods = async (item: ItemPrice, priceCache: Map<
       methods.push({
         type: 'barter',
         cost,
+        costInRubles: cost, // Already in rubles
+        currency: 'RUB',
         details: `${barter.trader.name} LL${barter.level}${barter.taskUnlock ? ` (${barter.taskUnlock.name})` : ''}`,
         id: barter.id,
         data: barter
@@ -173,8 +203,8 @@ export const getAllAcquisitionMethods = async (item: ItemPrice, priceCache: Map<
     }
   }
 
-  // Sort by cost (cheapest first)
-  return methods.sort((a, b) => a.cost - b.cost)
+  // Sort by cost in rubles (cheapest first)
+  return methods.sort((a, b) => a.costInRubles - b.costInRubles)
 }
 
 export const findCheapestAcquisitionMethod = async (item: ItemPrice, priceCache: Map<string, number>) => {

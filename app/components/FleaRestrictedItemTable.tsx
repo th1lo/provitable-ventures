@@ -89,6 +89,8 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
   const [acquisitionMethods, setAcquisitionMethods] = useState<Array<{
     type: 'craft' | 'barter' | 'trader'
     cost: number
+    costInRubles: number
+    currency: string
     details: string
     id: string
     data?: any
@@ -148,12 +150,22 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
                   {getMethodIcon(method.type)}
                   <div>
                     <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                      {method.details}
+                      {method.data.source}
                     </span>
+                    <div className="text-xs text-neutral-500 dark:text-neutral-500">
+                      Direct Purchase
+                    </div>
                   </div>
                 </div>
-                <div className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                  {formatCurrency(method.cost)}
+                <div className="text-right">
+                  <div className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                    {formatCurrency(method.cost, method.currency as any)}
+                  </div>
+                  {method.currency !== 'RUB' && (
+                    <div className="text-xs text-neutral-500 dark:text-neutral-500">
+                      ≈ {formatCurrency(method.costInRubles)}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -186,7 +198,7 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
                   </div>
                 </div>
                 <div className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                  {formatCurrency(method.cost)}
+                  {formatCurrency(method.costInRubles)}
                 </div>
               </div>
             </div>
@@ -203,8 +215,17 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                        {method.details}
+                        {method.type === 'craft' ? 
+                          `${method.data.station.name} L${method.data.level}` :
+                          `${method.data.trader.name} LL${method.data.level}`
+                        }
                       </span>
+                      {method.type === 'craft' && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {formatDuration(method.data.duration)}
+                        </Badge>
+                      )}
                       {method.type === 'craft' && method.data?.station?.normalizedName === 'bitcoin-farm' && (
                         <Badge variant="secondary" className="text-xs bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300">
                           BTC L{bitcoinFarmLevel}
@@ -219,7 +240,7 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
                   </div>
                 </div>
                 <div className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                  {formatCurrency(method.cost)}
+                  {formatCurrency(method.costInRubles)}
                 </div>
               </div>
               {method.type === 'barter' && method.data?.taskUnlock && (
@@ -245,8 +266,17 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                        {method.details}
+                        {method.type === 'craft' ? 
+                          `${method.data.station.name} L${method.data.level}` :
+                          `${method.data.trader.name} LL${method.data.level}`
+                        }
                       </span>
+                      {method.type === 'craft' && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {formatDuration(method.data.duration)}
+                        </Badge>
+                      )}
                       {method.type === 'craft' && method.data?.station?.normalizedName === 'bitcoin-farm' && (
                         <Badge variant="secondary" className="text-xs bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300">
                           BTC L{bitcoinFarmLevel}
@@ -261,7 +291,7 @@ export const FleaRestrictedItemTable: React.FC<FleaRestrictedItemTableProps> = (
                   </div>
                 </div>
                 <div className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                  {formatCurrency(method.cost)}
+                  {formatCurrency(method.costInRubles)}
                 </div>
               </div>
             </CollapsibleTrigger>
