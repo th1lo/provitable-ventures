@@ -42,25 +42,33 @@ export const formatDuration = (seconds: number) => {
 }
 
 export const isFleaMarketRestricted = (item: ItemPrice) => {
-  return item.avg24hPrice === 0 || item.fleaMarketFee === undefined
+  // Check if item has flea market fee data and non-zero prices
+  return item.fleaMarketFee === undefined || (item.pvpPrice === 0 && item.pvePrice === 0)
 }
 
-export const getTotalValue = (item: ItemPrice) => {
-  // Use flea market price if available
-  if (item.avg24hPrice > 0) {
-    return item.avg24hPrice * item.quantity
-  }
-  
-  // For items without flea market price, use cheapest acquisition method cost in rubles
-  if (item.cheapestAcquisitionMethod?.costInRubles) {
+export const getTotalValue = (item: ItemPrice, gameMode: 'pvp' | 'pve' = 'pvp') => {
+  // For flea market restricted items, ALWAYS use cheapest acquisition method first
+  if (isFleaMarketRestricted(item) && item.cheapestAcquisitionMethod?.costInRubles) {
+    console.log(`Using acquisition method for ${item.shortName}: ₽${item.cheapestAcquisitionMethod.costInRubles}`);
     return item.cheapestAcquisitionMethod.costInRubles * item.quantity
   }
   
-  // Fall back to last low price
-  if (item.lastLowPrice > 0) {
-    return item.lastLowPrice * item.quantity
+  // For flea market available items, use game mode specific pricing
+  if (gameMode === 'pve') {
+    const price = item.pvePrice || 0
+    if (price > 0) {
+      console.log(`Using PvE price for ${item.shortName}: ₽${price}`);
+      return price * item.quantity
+    }
+  } else {
+    const price = item.pvpPrice || 0
+    if (price > 0) {
+      console.log(`Using PvP price for ${item.shortName}: ₽${price}`);
+      return price * item.quantity
+    }
   }
   
+  console.log(`No price found for ${item.shortName}, returning 0`);
   return 0
 }
 
@@ -98,7 +106,7 @@ export const fetchItemPrices = async (itemIds: string[]): Promise<Map<string, nu
 
     if (data.data?.items) {
       data.data.items.forEach((item: ApiItem) => {
-        // Use flea market price for ACQUIRING items (not selling)
+        // Use average prices for more stable pricing - prioritize avg24hPrice
         const acquisitionPrice = item.avg24hPrice || item.lastLowPrice || 0
         priceMap.set(item.id, acquisitionPrice)
       })
@@ -107,6 +115,35 @@ export const fetchItemPrices = async (itemIds: string[]): Promise<Map<string, nu
     return priceMap
   } catch (error) {
     console.error('Failed to fetch item prices:', error)
+    return new Map()
+  }
+}
+
+export const fetchRequiredItemsData = async (itemIds: string[]): Promise<Map<string, ApiItem>> => {
+  try {
+    const response = await fetch('https://api.tarkov.dev/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: ITEM_PRICES_QUERY,
+        variables: { ids: itemIds }
+      })
+    })
+
+    const data = await response.json()
+    const itemDataMap = new Map<string, ApiItem>()
+
+    if (data.data?.items) {
+      data.data.items.forEach((item: ApiItem) => {
+        itemDataMap.set(item.id, item)
+      })
+    }
+
+    return itemDataMap
+  } catch (error) {
+    console.error('Failed to fetch required items data:', error)
     return new Map()
   }
 }
@@ -133,15 +170,154 @@ export const calculateBarterCost = async (barter: Barter, priceCache: Map<string
   return totalCost
 }
 
+export const calculateBundledItemCost = async (
+  bundledItem: ItemPrice['bundledItem'], 
+  priceCache: Map<string, number>
+): Promise<number | null> => {
+  if (!bundledItem || !bundledItem.barters.length) {
+    return null;
+  }
+
+  // Analyze weapon parts for accurate sell value
+  const partsAnalysis = analyzeWeaponParts(bundledItem);
+  let bestNetCost = Infinity;
+
+  for (const barter of bundledItem.barters) {
+    // Calculate the cost to get the bundled item through barter
+    const barterCost = await calculateBarterCost(barter, priceCache);
+    
+    // Net cost = what we pay - what we get back from selling all parts (except REAP-IR)
+    const netCost = barterCost - partsAnalysis.totalSellValue;
+    
+    console.log(`Bundled barter analysis for ${bundledItem.shortName}:`);
+    console.log(`  Barter cost: ₽${barterCost.toLocaleString()}`);
+    console.log(`  Market price: ₽${bundledItem.avg24hPrice?.toLocaleString() || 0}`);
+    console.log(`  Parts analysis: ${partsAnalysis.weaponParts.length} parts`);
+    console.log(`  Total sellable value: ₽${partsAnalysis.totalSellValue.toLocaleString()}`);
+    console.log(`  - Flea sell value: ₽${partsAnalysis.fleaSellValue.toLocaleString()}`);
+    console.log(`  - Trader sell value: ₽${partsAnalysis.traderSellValue.toLocaleString()}`);
+    console.log(`  Net cost: ₽${netCost.toLocaleString()}`);
+    
+    if (netCost < bestNetCost) {
+      bestNetCost = netCost;
+    }
+  }
+
+  return bestNetCost === Infinity ? null : bestNetCost;
+}
+
+export const analyzeWeaponParts = (bundledItem: ItemPrice['bundledItem']) => {
+  if (!bundledItem?.containsItems || bundledItem.containsItems.length === 0) {
+    return {
+      weaponParts: [],
+      totalSellValue: 0,
+      fleaSellValue: 0,
+      traderSellValue: 0
+    };
+  }
+
+  // Hardcoded list of items that should be sold on flea market
+  const fleaMarketItemIds = [
+    '5a1ead28fcdbcb001912fa9f', // DLOC-IRD
+    '59f8a37386f7747af3328f06', // Shift
+    '59bfe68886f7746004266202', // MUR-1S
+    '59db3a1d86f77429e05b4e92'  // GRAL-S
+  ];
+
+  const weaponParts = bundledItem.containsItems.map(part => {
+    const isKeepForQuest = part.item.name.toLowerCase().includes('reap-ir');
+    
+    // Get best trader sell price
+    const traderSells = part.item.sellFor.filter(sell => 
+      sell.vendor?.normalizedName && sell.vendor.normalizedName !== 'flea-market'
+    );
+    
+    const bestTraderSell = traderSells.length > 0 
+      ? traderSells.reduce((best, current) => 
+          (current.priceRUB || current.price) > (best.priceRUB || best.price) ? current : best
+        )
+      : null;
+    
+    // Get flea market sell price
+    const fleaSell = part.item.sellFor.find(sell => 
+      sell.vendor?.normalizedName === 'flea-market'
+    );
+    
+    const bestTraderPrice = bestTraderSell ? (bestTraderSell.priceRUB || bestTraderSell.price) : 0;
+    const fleaPrice = fleaSell ? (fleaSell.priceRUB || fleaSell.price) : 0;
+    const marketPrice = part.item.avg24hPrice || part.item.lastLowPrice || 0;
+    
+    // Recommend flea if item ID is in the hardcoded list
+    const recommendFlea = fleaMarketItemIds.includes(part.item.id);
+    const sellValue = isKeepForQuest ? 0 : (recommendFlea ? fleaPrice : bestTraderPrice) * part.count;
+    
+    return {
+      id: part.item.id,
+      name: part.item.name,
+      shortName: part.item.shortName,
+      iconLink: part.item.iconLink,
+      count: part.count,
+      marketPrice,
+      bestTraderPrice,
+      bestTraderName: bestTraderSell?.vendor?.name || 'Unknown',
+      fleaPrice,
+      recommendFlea,
+      sellValue,
+      isKeepForQuest,
+      changeLast48h: part.item.changeLast48h || 0
+    };
+  });
+
+  const sellableParts = weaponParts.filter(part => !part.isKeepForQuest);
+  const totalSellValue = sellableParts.reduce((sum, part) => sum + part.sellValue, 0);
+  const fleaSellValue = sellableParts.filter(part => part.recommendFlea).reduce((sum, part) => sum + part.sellValue, 0);
+  const traderSellValue = sellableParts.filter(part => !part.recommendFlea).reduce((sum, part) => sum + part.sellValue, 0);
+
+  return {
+    weaponParts,
+    totalSellValue,
+    fleaSellValue,
+    traderSellValue
+  };
+};
+
 export const getAllAcquisitionMethods = async (item: ItemPrice, priceCache: Map<string, number>) => {
   const methods: Array<{
-    type: 'craft' | 'barter' | 'trader'
+    type: 'craft' | 'barter' | 'trader' | 'bundled'
     cost: number
     costInRubles: number
     currency: string
     details: string
     id: string
-    data?: any
+    data?: Craft | Barter
+    bundledItemDetails?: {
+      bundledItemName: string
+      bundledItemShortName: string
+      barterCost: number
+      sellValue: number
+      netCost: number
+      trader: string
+      traderLevel: number
+      requiredItems: Array<{ item: { id: string; name: string; shortName: string; iconLink: string }; count: number }>
+      weaponParts: Array<{
+        id: string
+        name: string
+        shortName: string
+        iconLink: string
+        count: number
+        marketPrice: number
+        bestTraderPrice: number
+        bestTraderName: string
+        fleaPrice: number
+        recommendFlea: boolean
+        sellValue: number
+        isKeepForQuest: boolean
+        changeLast48h: number
+      }>
+      totalSellValue: number
+      fleaSellValue: number
+      traderSellValue: number
+    }
   }> = []
 
   // Note: sellFor is what traders PAY YOU when selling TO them, not what you pay to buy FROM them
@@ -176,6 +352,57 @@ export const getAllAcquisitionMethods = async (item: ItemPrice, priceCache: Map<
         id: barter.id,
         data: barter
       })
+    }
+  }
+
+  // Add bundled item methods
+  if (item.bundledItem) {
+    // Analyze weapon parts for smart sell recommendations
+    const partsAnalysis = analyzeWeaponParts(item.bundledItem);
+    
+    const bundledCost = await calculateBundledItemCost(item.bundledItem, priceCache);
+    if (bundledCost !== null && bundledCost > 0) {
+      // Find the best barter for the bundled item to get details
+      let bestBarter = null;
+      let bestCost = Infinity;
+      let bestBarterCost = 0;
+      
+      for (const barter of item.bundledItem.barters) {
+        const barterCost = await calculateBarterCost(barter, priceCache);
+        const netCost = barterCost - partsAnalysis.totalSellValue;
+        
+        if (netCost < bestCost) {
+          bestCost = netCost;
+          bestBarter = barter;
+          bestBarterCost = barterCost;
+        }
+      }
+
+      if (bestBarter) {
+        methods.push({
+          type: 'bundled',
+          cost: bundledCost,
+          costInRubles: bundledCost,
+          currency: 'RUB',
+          details: `${bestBarter.trader.name} LL${bestBarter.level} ${item.bundledItem.shortName} (net cost after selling)`,
+          id: `bundled-${bestBarter.id}`,
+          data: bestBarter,
+          bundledItemDetails: {
+            bundledItemName: item.bundledItem.name,
+            bundledItemShortName: item.bundledItem.shortName,
+            barterCost: bestBarterCost,
+            sellValue: partsAnalysis.totalSellValue,
+            netCost: bundledCost,
+            trader: bestBarter.trader.name,
+            traderLevel: bestBarter.level,
+            requiredItems: bestBarter.requiredItems,
+            weaponParts: partsAnalysis.weaponParts,
+            totalSellValue: partsAnalysis.totalSellValue,
+            fleaSellValue: partsAnalysis.fleaSellValue,
+            traderSellValue: partsAnalysis.traderSellValue
+          }
+        });
+      }
     }
   }
 

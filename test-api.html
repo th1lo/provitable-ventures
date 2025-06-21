@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarkov API Test - Acquisition Methods Analysis</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .item-result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+        .acquisition-method { margin: 10px 0; padding: 10px; background: #e8f4f8; border-left: 4px solid #007bff; }
+        .barter-method { background: #f0f8e8; border-left-color: #28a745; }
+        .craft-method { background: #fff3cd; border-left-color: #ffc107; }
+        .trader-method { background: #f8d7da; border-left-color: #dc3545; }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .json-output { background: #f8f9fa; padding: 10px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; }
+        .required-items { margin: 5px 0; padding: 5px; background: #fff; border-radius: 3px; }
+        .cost-calculation { font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tarkov.dev API Test - Acquisition Methods Deep Analysis</h1>
+        
+        <div class="test-section">
+            <h2>Deep Acquisition Analysis</h2>
+            <button onclick="analyzeREAPIR()">Analyze REAP-IR Thoroughly</button>
+            <button onclick="analyzeAllQuestItems()">Analyze All Quest Items</button>
+            <button onclick="testBuyForSellFor()">Test BuyFor/SellFor Data</button>
+            <button onclick="testWeaponBuilds()">Test Weapon Build/Preset Data</button>
+            <button onclick="exploreAPISchema()">Explore API Schema</button>
+            <div id="analysis-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Barter & Craft Detection</h2>
+            <button onclick="findAllBartersAndCrafts()">Find All Barters & Crafts</button>
+            <div id="barter-craft-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Price Calculation Test</h2>
+            <button onclick="testPriceCalculations()">Test Price Calculations</button>
+            <div id="price-calc-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Raw API Data</h2>
+            <div id="raw-data"></div>
+        </div>
+    </div>
+
+    <script>
+        const QUEST_ITEMS = [
+            { name: 'Trijicon REAP-IR thermal imaging riflescope', searchTerm: 'REAP-IR', quantity: 15, category: 'Profitable Ventures' },
+            { name: 'BNTI Zhuk body armor', searchTerm: 'Zhuk', quantity: 15, category: 'Safety Guarantee' },
+            { name: 'Graphics card', searchTerm: 'Graphics card', quantity: 30, category: 'Profit Retention' },
+            { name: 'Physical bitcoin', searchTerm: 'Physical bitcoin', quantity: 15, category: 'Profit Retention' },
+        ];
+
+        const ENHANCED_QUERY = `
+          query GetItemsWithEverything($names: [String!]!) {
+            items(names: $names) {
+              id
+              name
+              shortName
+              avg24hPrice
+              lastLowPrice
+              changeLast48h
+              changeLast48hPercent
+              updated
+              iconLink
+              wikiLink
+              fleaMarketFee
+              buyFor {
+                source
+                price
+                currency
+                priceRUB
+                vendor {
+                  name
+                  normalizedName
+                }
+                requirements {
+                  type
+                  value
+                }
+              }
+              sellFor {
+                source
+                price
+                currency
+                priceRUB
+                vendor {
+                  name
+                  normalizedName
+                }
+                requirements {
+                  type
+                  value
+                }
+              }
+              craftsFor {
+                id
+                station {
+                  id
+                  name
+                  normalizedName
+                }
+                level
+                duration
+                requiredItems {
+                  item {
+                    id
+                    name
+                    shortName
+                    iconLink
+                    avg24hPrice
+                    lastLowPrice
+                  }
+                  count
+                }
+                rewardItems {
+                  item {
+                    id
+                    name
+                    shortName
+                  }
+                  count
+                }
+              }
+              bartersFor {
+                id
+                trader {
+                  id
+                  name
+                  normalizedName
+                }
+                level
+                requiredItems {
+                  item {
+                    id
+                    name
+                    shortName
+                    iconLink
+                    avg24hPrice
+                    lastLowPrice
+                  }
+                  count
+                }
+                rewardItems {
+                  item {
+                    id
+                    name
+                    shortName
+                  }
+                  count
+                }
+                taskUnlock {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        `;
+
+        const PVE_ENHANCED_QUERY = ENHANCED_QUERY.replace('items(names: $names)', 'items(names: $names, gameMode: pve)');
+
+        async function fetchTarkovAPI(query, variables, label = '') {
+            try {
+                const response = await fetch('https://api.tarkov.dev/graphql', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        variables: variables
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.errors) {
+                    console.error(`${label} API Errors:`, data.errors);
+                    return { error: data.errors, data: null };
+                }
+
+                return { error: null, data: data.data };
+            } catch (error) {
+                console.error(`${label} Fetch Error:`, error);
+                return { error: error.message, data: null };
+            }
+        }
+
+        function formatCurrency(amount) {
+            return `₽${amount?.toLocaleString() || 0}`;
+        }
+
+        function calculateCraftCost(craft) {
+            let totalCost = 0;
+            craft.requiredItems.forEach(req => {
+                const itemPrice = req.item.avg24hPrice || req.item.lastLowPrice || 0;
+                totalCost += itemPrice * req.count;
+            });
+            return totalCost;
+        }
+
+        function calculateBarterCost(barter) {
+            let totalCost = 0;
+            barter.requiredItems.forEach(req => {
+                const itemPrice = req.item.avg24hPrice || req.item.lastLowPrice || 0;
+                totalCost += itemPrice * req.count;
+            });
+            return totalCost;
+        }
+
+        async function analyzeREAPIR() {
+            const resultsDiv = document.getElementById('analysis-results');
+            resultsDiv.innerHTML = '<h3>Deep Analysis of REAP-IR...</h3>';
+
+            const pvpResult = await fetchTarkovAPI(ENHANCED_QUERY, { names: ['REAP-IR'] }, 'PvP Enhanced');
+            const pveResult = await fetchTarkovAPI(PVE_ENHANCED_QUERY, { names: ['REAP-IR'] }, 'PvE Enhanced');
+            
+            // Also search for the bundled rifle
+            const rifleResult = await fetchTarkovAPI(ENHANCED_QUERY, { names: ['Colt M4A1 5.56x45 assault rifle REAP-IR'] }, 'Rifle Bundle');
+
+            let html = '<h4>REAP-IR Deep Analysis</h4>';
+
+            if (pvpResult.error) {
+                html += `<div class="error">PvP Query Error: ${JSON.stringify(pvpResult.error)}</div>`;
+            } else {
+                const item = pvpResult.data?.items?.[0];
+                if (item) {
+                    html += `<div class="item-result">
+                        <h5>PvP - ${item.name}</h5>
+                        <strong>Basic Info:</strong><br>
+                        ID: ${item.id}<br>
+                        Avg24h: ${formatCurrency(item.avg24hPrice)}<br>
+                        LastLow: ${formatCurrency(item.lastLowPrice)}<br>
+                        FleaFee: ${item.fleaMarketFee || 'undefined'}<br>
+                        <br>
+                        <strong>Acquisition Methods Found:</strong><br>
+                        Crafts: ${item.craftsFor?.length || 0}<br>
+                        Barters: ${item.bartersFor?.length || 0}<br>
+                        BuyFor: ${item.buyFor?.length || 0}<br>
+                        SellFor: ${item.sellFor?.length || 0}<br>
+                    </div>`;
+
+                    // Analyze all acquisition methods
+                    if (item.bartersFor && item.bartersFor.length > 0) {
+                        html += '<h5>Barter Methods:</h5>';
+                        item.bartersFor.forEach((barter, index) => {
+                            const cost = calculateBarterCost(barter);
+                            html += `<div class="acquisition-method barter-method">
+                                <strong>Barter ${index + 1}: ${barter.trader.name} LL${barter.level}</strong><br>
+                                ${barter.taskUnlock ? `<span class="warning">Requires Quest: ${barter.taskUnlock.name}</span><br>` : ''}
+                                <div class="required-items">
+                                    <strong>Required Items:</strong><br>
+                                    ${barter.requiredItems.map(req => 
+                                        `${req.count}x ${req.item.shortName} (${formatCurrency(req.item.avg24hPrice || req.item.lastLowPrice)})`
+                                    ).join('<br>')}
+                                </div>
+                                <div class="cost-calculation">Total Cost: ${formatCurrency(cost)}</div>
+                            </div>`;
+                        });
+                    }
+
+                    if (item.craftsFor && item.craftsFor.length > 0) {
+                        html += '<h5>Craft Methods:</h5>';
+                        item.craftsFor.forEach((craft, index) => {
+                            const cost = calculateCraftCost(craft);
+                            html += `<div class="acquisition-method craft-method">
+                                <strong>Craft ${index + 1}: ${craft.station.name} L${craft.level}</strong><br>
+                                Duration: ${Math.floor(craft.duration / 3600)}h ${Math.floor((craft.duration % 3600) / 60)}m<br>
+                                <div class="required-items">
+                                    <strong>Required Items:</strong><br>
+                                    ${craft.requiredItems.map(req => 
+                                        `${req.count}x ${req.item.shortName} (${formatCurrency(req.item.avg24hPrice || req.item.lastLowPrice)})`
+                                    ).join('<br>')}
+                                </div>
+                                <div class="cost-calculation">Total Cost: ${formatCurrency(cost)}</div>
+                            </div>`;
+                        });
+                    }
+
+                    if (item.buyFor && item.buyFor.length > 0) {
+                        html += '<h5>Direct Purchase Options:</h5>';
+                        item.buyFor.forEach((buy, index) => {
+                            html += `<div class="acquisition-method trader-method">
+                                <strong>Buy ${index + 1}: ${buy.vendor?.name || buy.source}</strong><br>
+                                Price: ${formatCurrency(buy.priceRUB || buy.price)}<br>
+                                Currency: ${buy.currency}<br>
+                                ${buy.requirements ? `Requirements: ${buy.requirements.map(req => `${req.type}: ${req.value}`).join(', ')}` : ''}
+                            </div>`;
+                        });
+                    }
+
+                    // Show cheapest option
+                    const allMethods = [];
+                    if (item.bartersFor) item.bartersFor.forEach(b => allMethods.push({type: 'barter', cost: calculateBarterCost(b), data: b}));
+                    if (item.craftsFor) item.craftsFor.forEach(c => allMethods.push({type: 'craft', cost: calculateCraftCost(c), data: c}));
+                    if (item.buyFor) item.buyFor.forEach(b => allMethods.push({type: 'buy', cost: b.priceRUB || b.price, data: b}));
+
+                    allMethods.sort((a, b) => a.cost - b.cost);
+                    
+                    if (allMethods.length > 0) {
+                        const cheapest = allMethods[0];
+                        html += `<div class="success">
+                            <h5>Cheapest Direct Acquisition Method:</h5>
+                            Type: ${cheapest.type}<br>
+                            Cost: ${formatCurrency(cheapest.cost)}<br>
+                            ${cheapest.type === 'barter' ? `Trader: ${cheapest.data.trader.name}` : ''}
+                            ${cheapest.type === 'craft' ? `Station: ${cheapest.data.station.name}` : ''}
+                            ${cheapest.type === 'buy' ? `Vendor: ${cheapest.data.vendor?.name || cheapest.data.source}` : ''}
+                        </div>`;
+                    } else {
+                        html += '<div class="error">No direct acquisition methods found!</div>';
+                    }
+                }
+            }
+
+            // Analyze the bundled rifle
+            if (rifleResult.data?.items?.[0]) {
+                const rifle = rifleResult.data.items[0];
+                html += `<div class="item-result">
+                    <h5>🔍 Bundled Item Analysis: ${rifle.name}</h5>
+                    <strong>Rifle Info:</strong><br>
+                    Avg24h: ${formatCurrency(rifle.avg24hPrice)}<br>
+                    LastLow: ${formatCurrency(rifle.lastLowPrice)}<br>
+                    Sell Value: ${formatCurrency(rifle.sellFor?.[0]?.priceRUB || rifle.avg24hPrice * 0.6)}<br>
+                    <br>
+                `;
+
+                if (rifle.bartersFor && rifle.bartersFor.length > 0) {
+                    html += '<strong>Rifle Barter Methods:</strong><br>';
+                    rifle.bartersFor.forEach((barter, index) => {
+                        const barterCost = calculateBarterCost(barter);
+                        const sellValue = rifle.sellFor?.[0]?.priceRUB || rifle.avg24hPrice * 0.6 || 0;
+                        const netCost = barterCost - sellValue;
+                        
+                        html += `<div class="acquisition-method barter-method">
+                            <strong>Rifle Barter ${index + 1}: ${barter.trader.name} LL${barter.level}</strong><br>
+                            ${barter.taskUnlock ? `<span class="warning">Requires Quest: ${barter.taskUnlock.name}</span><br>` : ''}
+                            <div class="required-items">
+                                <strong>Required Items:</strong><br>
+                                ${barter.requiredItems.map(req => 
+                                    `${req.count}x ${req.item.shortName} (${formatCurrency(req.item.avg24hPrice || req.item.lastLowPrice)})`
+                                ).join('<br>')}
+                            </div>
+                            <div class="cost-calculation">
+                                Barter Cost: ${formatCurrency(barterCost)}<br>
+                                Rifle Sell Value: ${formatCurrency(sellValue)}<br>
+                                <strong>Net Cost for REAP-IR: ${formatCurrency(netCost)}</strong>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                html += '</div>';
+            }
+
+            // Compare all methods including bundled
+            const rifleItem = rifleResult.data?.items?.[0];
+            const directItem = pvpResult.data?.items?.[0];
+            
+            if (rifleItem && directItem) {
+                html += `<div class="success">
+                    <h5>🏆 FINAL COMPARISON - Best Way to Get REAP-IR:</h5>`;
+                
+                const allFinalMethods = [];
+                
+                // Direct methods
+                if (directItem.bartersFor) directItem.bartersFor.forEach(b => allFinalMethods.push({
+                    type: 'direct barter', 
+                    cost: calculateBarterCost(b), 
+                    description: `${b.trader.name} LL${b.level} barter`
+                }));
+                if (directItem.craftsFor) directItem.craftsFor.forEach(c => allFinalMethods.push({
+                    type: 'direct craft', 
+                    cost: calculateCraftCost(c), 
+                    description: `${c.station.name} L${c.level} craft`
+                }));
+                if (directItem.buyFor) directItem.buyFor.forEach(b => allFinalMethods.push({
+                    type: 'direct buy', 
+                    cost: b.priceRUB || b.price, 
+                    description: `${b.vendor?.name || b.source} purchase`
+                }));
+                
+                // Bundled rifle methods
+                if (rifleItem.bartersFor) rifleItem.bartersFor.forEach(b => {
+                    const barterCost = calculateBarterCost(b);
+                    const sellValue = rifleItem.sellFor?.[0]?.priceRUB || rifleItem.avg24hPrice * 0.6 || 0;
+                    const netCost = barterCost - sellValue;
+                    allFinalMethods.push({
+                        type: 'bundled barter', 
+                        cost: netCost, 
+                        description: `${b.trader.name} LL${b.level} rifle barter (net cost after selling rifle)`
+                    });
+                });
+
+                allFinalMethods.sort((a, b) => a.cost - b.cost);
+                
+                if (allFinalMethods.length > 0) {
+                    html += `<table style="width:100%; margin-top: 10px;">
+                        <tr><th>Method</th><th>Description</th><th>Cost</th></tr>`;
+                    
+                    allFinalMethods.forEach((method, index) => {
+                        const isWinner = index === 0;
+                        html += `<tr style="${isWinner ? 'background-color: #d4edda; font-weight: bold;' : ''}">
+                            <td>${method.type}</td>
+                            <td>${method.description}</td>
+                            <td>${formatCurrency(method.cost)}</td>
+                        </tr>`;
+                    });
+                    
+                    html += `</table>
+                        <div style="margin-top: 10px; padding: 10px; background: #d4edda; border-radius: 4px;">
+                            <strong>🎯 WINNER: ${allFinalMethods[0].description}</strong><br>
+                            <strong>Cost per REAP-IR: ${formatCurrency(allFinalMethods[0].cost)}</strong><br>
+                            <strong>Total for 15x REAP-IR: ${formatCurrency(allFinalMethods[0].cost * 15)}</strong>
+                        </div>`;
+                } else {
+                    html += '<div class="error">No acquisition methods found!</div>';
+                }
+                
+                html += '</div>';
+            }
+
+            // Show raw data
+            document.getElementById('raw-data').innerHTML = `
+                <h4>Raw REAP-IR Data</h4>
+                <h5>Direct REAP-IR:</h5>
+                <div class="json-output">${JSON.stringify(pvpResult, null, 2)}</div>
+                <h5>Bundled Rifle:</h5>
+                <div class="json-output">${JSON.stringify(rifleResult, null, 2)}</div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        async function analyzeAllQuestItems() {
+            const resultsDiv = document.getElementById('analysis-results');
+            resultsDiv.innerHTML = '<h3>Analyzing All Quest Items...</h3>';
+
+            const searchTerms = QUEST_ITEMS.map(item => item.searchTerm);
+            const result = await fetchTarkovAPI(ENHANCED_QUERY, { names: searchTerms }, 'All Quest Items');
+
+            let html = '<table><tr><th>Item</th><th>Flea Price</th><th>Flea Restricted</th><th>Crafts</th><th>Barters</th><th>Cheapest Method</th><th>Cheapest Cost</th></tr>';
+
+            QUEST_ITEMS.forEach(questItem => {
+                const apiItem = result.data?.items?.find(item => 
+                    item.name.toLowerCase().includes(questItem.searchTerm.toLowerCase()) ||
+                    item.shortName.toLowerCase().includes(questItem.searchTerm.toLowerCase())
+                );
+
+                if (apiItem) {
+                    const fleaRestricted = !apiItem.fleaMarketFee || apiItem.avg24hPrice === 0;
+                    
+                    // Calculate all acquisition methods
+                    const allMethods = [];
+                    if (apiItem.bartersFor) apiItem.bartersFor.forEach(b => allMethods.push({type: 'barter', cost: calculateBarterCost(b)}));
+                    if (apiItem.craftsFor) apiItem.craftsFor.forEach(c => allMethods.push({type: 'craft', cost: calculateCraftCost(c)}));
+                    if (apiItem.buyFor) apiItem.buyFor.forEach(b => allMethods.push({type: 'buy', cost: b.priceRUB || b.price}));
+
+                    allMethods.sort((a, b) => a.cost - b.cost);
+                    const cheapest = allMethods[0];
+
+                    html += `<tr>
+                        <td>${questItem.searchTerm}</td>
+                        <td>${formatCurrency(apiItem.avg24hPrice)}</td>
+                        <td>${fleaRestricted ? 'YES' : 'NO'}</td>
+                        <td>${apiItem.craftsFor?.length || 0}</td>
+                        <td>${apiItem.bartersFor?.length || 0}</td>
+                        <td>${cheapest ? cheapest.type : 'None'}</td>
+                        <td>${cheapest ? formatCurrency(cheapest.cost) : 'N/A'}</td>
+                    </tr>`;
+                } else {
+                    html += `<tr><td>${questItem.searchTerm}</td><td colspan="6" class="error">Not Found</td></tr>`;
+                }
+            });
+
+            html += '</table>';
+            resultsDiv.innerHTML = html;
+        }
+
+        async function testBuyForSellFor() {
+            const resultsDiv = document.getElementById('analysis-results');
+            resultsDiv.innerHTML = '<h3>Testing BuyFor/SellFor Data...</h3>';
+
+            const result = await fetchTarkovAPI(ENHANCED_QUERY, { names: ['REAP-IR', 'LEDX'] }, 'BuyFor/SellFor Test');
+
+            let html = '<h4>BuyFor/SellFor Analysis</h4>';
+
+            if (result.data?.items) {
+                result.data.items.forEach(item => {
+                    html += `<div class="item-result">
+                        <h5>${item.name}</h5>
+                        <strong>BuyFor (${item.buyFor?.length || 0} entries):</strong><br>
+                        ${item.buyFor?.map(buy => 
+                            `${buy.vendor?.name || buy.source}: ${formatCurrency(buy.priceRUB)} (${buy.currency})`
+                        ).join('<br>') || 'None'}<br><br>
+                        <strong>SellFor (${item.sellFor?.length || 0} entries):</strong><br>
+                        ${item.sellFor?.map(sell => 
+                            `${sell.vendor?.name || sell.source}: ${formatCurrency(sell.priceRUB)} (${sell.currency})`
+                        ).join('<br>') || 'None'}
+                    </div>`;
+                });
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        async function findAllBartersAndCrafts() {
+            const resultsDiv = document.getElementById('barter-craft-results');
+            resultsDiv.innerHTML = '<h3>Finding All Barter & Craft Opportunities...</h3>';
+
+            // Query for items that might be used to get quest items
+            const result = await fetchTarkovAPI(ENHANCED_QUERY, { names: ['REAP-IR', 'LEDX', 'Graphics card', 'bitcoin'] }, 'Barter Analysis');
+
+            let html = '<h4>Barter & Craft Analysis</h4>';
+
+            if (result.data?.items) {
+                result.data.items.forEach(item => {
+                    html += `<div class="item-result">
+                        <h5>${item.name}</h5>`;
+                    
+                    if (item.bartersFor && item.bartersFor.length > 0) {
+                        html += '<strong>Available Barters:</strong><br>';
+                        item.bartersFor.forEach(barter => {
+                            const cost = calculateBarterCost(barter);
+                            html += `• ${barter.trader.name} LL${barter.level}: ${barter.requiredItems.map(req => `${req.count}x ${req.item.shortName}`).join(' + ')} = ${formatCurrency(cost)}<br>`;
+                        });
+                    }
+
+                    if (item.craftsFor && item.craftsFor.length > 0) {
+                        html += '<strong>Available Crafts:</strong><br>';
+                        item.craftsFor.forEach(craft => {
+                            const cost = calculateCraftCost(craft);
+                            html += `• ${craft.station.name} L${craft.level}: ${craft.requiredItems.map(req => `${req.count}x ${req.item.shortName}`).join(' + ')} = ${formatCurrency(cost)}<br>`;
+                        });
+                    }
+
+                    html += '</div>';
+                });
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        async function testPriceCalculations() {
+            const resultsDiv = document.getElementById('price-calc-results');
+            resultsDiv.innerHTML = '<h3>Testing Price Calculations...</h3>';
+
+            const result = await fetchTarkovAPI(ENHANCED_QUERY, { names: ['REAP-IR'] }, 'Price Calc Test');
+
+            let html = '<h4>Price Calculation Breakdown for REAP-IR</h4>';
+
+            const item = result.data?.items?.[0];
+            if (item) {
+                html += `<div class="item-result">
+                    <h5>${item.name}</h5>
+                    <strong>Direct Prices:</strong><br>
+                    Avg24h: ${formatCurrency(item.avg24hPrice)}<br>
+                    LastLow: ${formatCurrency(item.lastLowPrice)}<br>
+                    Flea Restricted: ${!item.fleaMarketFee || item.avg24hPrice === 0 ? 'YES' : 'NO'}<br><br>
+                `;
+
+                // Test our calculation logic
+                const fleaRestricted = !item.fleaMarketFee || item.avg24hPrice === 0;
+                const fleaPrice = item.avg24hPrice || item.lastLowPrice || 0;
+
+                html += `<strong>Calculation Logic Test:</strong><br>`;
+                html += `Flea Market Available: ${!fleaRestricted}<br>`;
+                html += `Should use flea price: ${!fleaRestricted && fleaPrice > 0}<br>`;
+                html += `Flea price to use: ${formatCurrency(fleaPrice)}<br><br>`;
+
+                if (fleaRestricted) {
+                    html += `<strong>Since flea restricted, checking acquisition methods:</strong><br>`;
+                    
+                    const allMethods = [];
+                    if (item.bartersFor) item.bartersFor.forEach(b => allMethods.push({type: 'barter', cost: calculateBarterCost(b), data: b}));
+                    if (item.craftsFor) item.craftsFor.forEach(c => allMethods.push({type: 'craft', cost: calculateCraftCost(c), data: c}));
+                    if (item.buyFor) item.buyFor.forEach(b => allMethods.push({type: 'buy', cost: b.priceRUB || b.price, data: b}));
+
+                    allMethods.sort((a, b) => a.cost - b.cost);
+
+                    if (allMethods.length > 0) {
+                        html += `Found ${allMethods.length} acquisition methods:<br>`;
+                        allMethods.forEach(method => {
+                            html += `• ${method.type}: ${formatCurrency(method.cost)}<br>`;
+                        });
+                        html += `<strong>Cheapest: ${allMethods[0].type} at ${formatCurrency(allMethods[0].cost)}</strong><br>`;
+                        
+                        // For 15 REAP-IR
+                        const totalCost = allMethods[0].cost * 15;
+                        html += `<strong>Total for 15x REAP-IR: ${formatCurrency(totalCost)}</strong><br>`;
+                    } else {
+                        html += `<span class="error">No acquisition methods found!</span><br>`;
+                    }
+                }
+
+                html += '</div>';
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        async function testWeaponBuilds() {
+            const resultsDiv = document.getElementById('analysis-results');
+            resultsDiv.innerHTML = '<h3>Getting Exact Parts from REAP-IR M4...</h3>';
+
+            // Simplified working query to get contained items
+            const partsQuery = `
+                query GetWeaponParts($names: [String!]!) {
+                    items(names: $names) {
+                        id
+                        name
+                        shortName
+                        avg24hPrice
+                        lastLowPrice
+                        iconLink
+                        sellFor {
+                            source
+                            price
+                            currency
+                            priceRUB
+                            vendor {
+                                name
+                            }
+                        }
+                        containsItems {
+                            item {
+                                id
+                                name
+                                shortName
+                                avg24hPrice
+                                lastLowPrice
+                                iconLink
+                                sellFor {
+                                    source
+                                    price
+                                    currency
+                                    priceRUB
+                                    vendor {
+                                        name
+                                    }
+                                }
+                            }
+                            count
+                            quantity
+                        }
+                    }
+                }
+            `;
+
+            let html = '<h4>REAP-IR M4A1 Parts Breakdown</h4>';
+
+            try {
+                const result = await fetchTarkovAPI(partsQuery, { names: ['Colt M4A1 5.56x45 assault rifle REAP-IR'] }, 'Parts Query');
+                
+                if (result.error) {
+                    html += `<div class="error">Error: ${JSON.stringify(result.error, null, 2)}</div>`;
+                } else {
+                    const items = result.data?.items || [];
+                    html += `<div class="success">Found ${items.length} items</div>`;
+                    
+                    if (items.length > 0) {
+                        const weapon = items[0];
+                        html += `<div style="margin: 10px 0; padding: 15px; background: #e8f4f8; border-radius: 8px;">
+                            <h5>${weapon.name}</h5>
+                            <strong>Weapon Info:</strong><br>
+                            ID: ${weapon.id}<br>
+                            Market Price: ${formatCurrency(weapon.avg24hPrice)}<br>
+                            Last Low: ${formatCurrency(weapon.lastLowPrice)}<br>
+                            <br>`;
+                        
+                        if (weapon.sellFor && weapon.sellFor.length > 0) {
+                            html += `<strong>Weapon Sell Options:</strong><br>`;
+                            weapon.sellFor.forEach(sell => {
+                                html += `• ${sell.vendor?.name || sell.source}: ${formatCurrency(sell.priceRUB || sell.price)} (${sell.currency})<br>`;
+                            });
+                            html += '<br>';
+                        }
+                        
+                        if (weapon.containsItems && weapon.containsItems.length > 0) {
+                            html += `<strong>Contains ${weapon.containsItems.length} parts:</strong><br>`;
+                            let totalPartsValue = 0;
+                            let reaperValue = 0;
+                            
+                            weapon.containsItems.forEach(part => {
+                                const isReaper = part.item.name.toLowerCase().includes('reap-ir');
+                                const partMarketPrice = part.item.avg24hPrice || part.item.lastLowPrice || 0;
+                                const partSellPrice = part.item.sellFor?.length > 0 
+                                    ? Math.max(...part.item.sellFor.map(sell => sell.priceRUB || sell.price))
+                                    : partMarketPrice * 0.4;
+                                
+                                if (isReaper) {
+                                    reaperValue = partMarketPrice;
+                                } else {
+                                    totalPartsValue += partSellPrice * part.count;
+                                }
+                                
+                                html += `<div style="margin: 5px 0; padding: 8px; background: ${isReaper ? '#fff3cd' : '#f8f9fa'}; border-radius: 4px;">
+                                    <strong>${part.count}x ${part.item.shortName}</strong> ${isReaper ? '(KEEP FOR QUEST)' : ''}<br>
+                                    Market: ${formatCurrency(partMarketPrice)}<br>`;
+                                
+                                if (part.item.sellFor && part.item.sellFor.length > 0) {
+                                    html += `Sell Options: `;
+                                    part.item.sellFor.forEach(sell => {
+                                        html += `${sell.vendor?.name || sell.source}: ${formatCurrency(sell.priceRUB || sell.price)} `;
+                                    });
+                                    html += '<br>';
+                                }
+                                
+                                if (!isReaper) {
+                                    html += `<span style="color: #28a745; font-weight: bold;">Sellable Value: ${formatCurrency(partSellPrice * part.count)}</span>`;
+                                }
+                                
+                                html += `</div>`;
+                            });
+                            
+                            html += `<div style="margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 4px;">
+                                <h6>Summary:</h6>
+                                <strong>REAP-IR Value (Keep):</strong> ${formatCurrency(reaperValue)}<br>
+                                <strong>Other Parts Sell Value:</strong> ${formatCurrency(totalPartsValue)}<br>
+                                <strong>Total Weapon Value:</strong> ${formatCurrency(reaperValue + totalPartsValue)}<br>
+                                <br>
+                                <strong style="color: #007bff;">Net Cost per REAP-IR:</strong> Barter Cost - ${formatCurrency(totalPartsValue)}
+                            </div>`;
+                        } else {
+                            html += `<div class="warning">No contained items found. The weapon might not have parts data or might be treated as a single item.</div>`;
+                        }
+                        
+                        html += `</div>`;
+                    }
+                }
+            } catch (error) {
+                html += `<div class="error">Exception: ${error.message}</div>`;
+            }
+            
+            // Show raw response for debugging
+            html += `<details style="margin-top: 20px;">
+                <summary>Raw API Response (click to expand)</summary>
+                <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px;">${JSON.stringify(result, null, 2)}</pre>
+            </details>`;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        async function exploreAPISchema() {
+            const resultsDiv = document.getElementById('analysis-results');
+            resultsDiv.innerHTML = '<h3>Exploring API Schema for Weapon/Preset Fields...</h3>';
+
+            // GraphQL introspection query to discover available fields
+            const introspectionQuery = `
+                query IntrospectionQuery {
+                    __schema {
+                        types {
+                            name
+                            kind
+                            description
+                            fields {
+                                name
+                                description
+                                type {
+                                    name
+                                    kind
+                                    ofType {
+                                        name
+                                        kind
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            `;
+
+            let html = '<h4>API Schema Exploration</h4>';
+
+            try {
+                const result = await fetchTarkovAPI(introspectionQuery, {}, 'Schema Introspection');
+                
+                if (result.error) {
+                    html += `<div class="error">Introspection Error: ${JSON.stringify(result.error)}</div>`;
+                } else {
+                    const types = result.data?.__schema?.types || [];
+                    
+                    // Look for Item-related types
+                    const itemTypes = types.filter(type => 
+                        type.name && (
+                            type.name.toLowerCase().includes('item') ||
+                            type.name.toLowerCase().includes('weapon') ||
+                            type.name.toLowerCase().includes('preset') ||
+                            type.name.toLowerCase().includes('build')
+                        )
+                    );
+                    
+                    html += `<div class="success">Found ${itemTypes.length} relevant types</div>`;
+                    
+                    itemTypes.forEach(type => {
+                        html += `<div class="item-result">
+                            <h5>${type.name} (${type.kind})</h5>
+                            <div class="text-sm text-neutral-600">${type.description || 'No description'}</div>`;
+                        
+                        if (type.fields && type.fields.length > 0) {
+                            html += '<strong>Fields:</strong><br>';
+                            type.fields.forEach(field => {
+                                if (field.name.toLowerCase().includes('preset') || 
+                                    field.name.toLowerCase().includes('build') ||
+                                    field.name.toLowerCase().includes('contain') ||
+                                    field.name.toLowerCase().includes('part')) {
+                                    html += `<span style="color: #007bff; font-weight: bold;">• ${field.name}</span>: ${field.type.name || field.type.ofType?.name}<br>`;
+                                } else {
+                                    html += `• ${field.name}: ${field.type.name || field.type.ofType?.name}<br>`;
+                                }
+                            });
+                        }
+                        
+                        html += '</div>';
+                    });
+                }
+            } catch (error) {
+                html += `<div class="error">Exception: ${error.message}</div>`;
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Auto-run REAP-IR analysis on page load
+        window.onload = function() {
+            analyzeREAPIR();
+        };
+    </script>
+</body>
+</html> 

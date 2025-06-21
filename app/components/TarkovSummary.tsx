@@ -18,12 +18,6 @@ export const TarkovSummary: React.FC<TarkovSummaryProps> = ({
   // Mock price change for demonstration (in real app, this would come from props)
   const overallPriceChange = 2.3 // +2.3% overall price increase
 
-  const getPriceChangeIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className="h-6 w-6 text-green-500" />
-    if (change < 0) return <TrendingDown className="h-6 w-6 text-red-500" />
-    return <Minus className="h-6 w-6 text-neutral-400" />
-  }
-
   const getPriceChangeBadge = (change: number) => {
     if (change > 0) {
       return (

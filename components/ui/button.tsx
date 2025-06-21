@@ -1,4 +1,5 @@
 import React from 'react'
+import { cn } from '../../lib/utils'
 
 export interface ButtonProps {
   variant?: "default" | "outline" | "ghost" | "destructive"
@@ -41,6 +42,75 @@ export function Button({
       disabled={disabled}
       onClick={onClick}
       {...props}
+    >
+      {children}
+    </button>
+  )
+}
+
+export interface ToggleGroupProps {
+  value: string
+  onValueChange: (value: string) => void
+  children: React.ReactNode
+  className?: string
+}
+
+export interface ToggleGroupItemProps {
+  value: string
+  children: React.ReactNode
+  className?: string
+  isSelected?: boolean
+  onClick?: () => void
+}
+
+export const ToggleGroup: React.FC<ToggleGroupProps> = ({ 
+  value, 
+  onValueChange, 
+  children, 
+  className = "" 
+}) => {
+  return (
+    <div className={`inline-flex rounded-md shadow-sm ${className}`} role="group">
+      {React.Children.map(children, (child, index) => {
+        if (React.isValidElement<ToggleGroupItemProps>(child)) {
+          const childValue = child.props.value
+          return (
+            <ToggleGroupItem
+              key={childValue || index}
+              value={childValue}
+              isSelected={childValue === value}
+              onClick={() => onValueChange(childValue)}
+              className={child.props.className}
+            >
+              {child.props.children}
+            </ToggleGroupItem>
+          )
+        }
+        return child
+      })}
+    </div>
+  )
+}
+
+export const ToggleGroupItem: React.FC<ToggleGroupItemProps> = ({ 
+  children, 
+  isSelected = false, 
+  onClick,
+  className = "" 
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "px-4 py-2 text-sm font-medium border transition-colors",
+        "first:rounded-l-md last:rounded-r-md",
+        "focus:z-10 ",
+        isSelected
+          ? "bg-neutral-100 text-black border-neutral-200 dark:border-neutral-700"
+          : "bg-white text-neutral-900 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700 dark:hover:bg-neutral-700",
+        className
+      )}
     >
       {children}
     </button>

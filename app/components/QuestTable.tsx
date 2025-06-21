@@ -1,12 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
-// Collapsible components not needed for quest tables - using external state
-import { ChevronDown, ExternalLink, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react'
-import { ItemPrice } from '../types/tarkov'
-import { formatCurrency, isFleaMarketRestricted, getTotalValue } from '../utils/tarkov-utils'
-import { FleaRestrictedItemTable } from './FleaRestrictedItemTable'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { ChevronDown, ChevronUp, ExternalLink, TrendingUp, TrendingDown, Minus, Hammer, ArrowRightLeft, ShoppingCart } from 'lucide-react'
+import { ItemPrice, GameMode, Craft, Barter } from '../types/tarkov'
+import { formatCurrency, isFleaMarketRestricted, getTotalValue, analyzeWeaponParts, getAllAcquisitionMethods } from '../utils/tarkov-utils'
 import { QUEST_WIKI_LINKS } from '../constants/tarkov-data'
+import { ItemTable, type TableItem } from './shared'
 
 interface QuestTableProps {
   questName: string
@@ -14,12 +14,15 @@ interface QuestTableProps {
   isExpanded: boolean
   bitcoinFarmLevel: number
   itemPriceCache: Map<string, number>
+  gameMode: GameMode
   onToggleExpansion: (questName: string) => void
+  allItemPrices: ItemPrice[]
+  requiredItemsData?: Map<string, any>
 }
 
 const getPriceChangeBadge = (change: number | undefined) => {
   if (change === undefined) return null
-  
+
   if (change > 0) {
     return (
       <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-full text-green-700 dark:text-green-300 text-xs font-medium">
@@ -44,31 +47,369 @@ const getPriceChangeBadge = (change: number | undefined) => {
   )
 }
 
+// Component for detailed acquisition method analysis
+const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allItemPrices, requiredItemsData }: {
+  item: ItemPrice,
+  bitcoinFarmLevel: number,
+  itemPriceCache: Map<string, number>,
+  allItemPrices?: ItemPrice[],
+  requiredItemsData?: Map<string, any>
+}) => {
+  const [acquisitionMethods, setAcquisitionMethods] = useState<any[]>([])
+  const [openMethods, setOpenMethods] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(true)
+
+  React.useEffect(() => {
+    const fetchMethods = async () => {
+      try {
+        const methods = await getAllAcquisitionMethods(item, itemPriceCache)
+        setAcquisitionMethods(methods)
+      } catch (error) {
+        console.error('Error fetching acquisition methods:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchMethods()
+  }, [item, itemPriceCache])
+
+  const toggleMethod = (methodId: string) => {
+    const newOpen = new Set(openMethods)
+    if (newOpen.has(methodId)) {
+      newOpen.delete(methodId)
+    } else {
+      newOpen.add(methodId)
+    }
+    setOpenMethods(newOpen)
+  }
+
+  const getMethodIcon = (type: string) => {
+    switch (type) {
+      case 'craft': return <Hammer className="h-4 w-4 text-blue-600" />
+      case 'barter': return <ArrowRightLeft className="h-4 w-4 text-green-600" />
+      case 'trader': return <ShoppingCart className="h-4 w-4 text-purple-600" />
+      case 'bundled': return <ArrowRightLeft className="h-4 w-4 text-orange-600" />
+      default: return null
+    }
+  }
+
+  if (loading) {
+    return <div className="text-sm text-neutral-500">Loading acquisition methods...</div>
+  }
+
+  if (acquisitionMethods.length === 0) {
+    return <div className="text-sm text-neutral-500">No acquisition methods available</div>
+  }
+
+  return (
+    <div className="space-y-2">
+      {acquisitionMethods.map((method) => {
+        const isOpen = openMethods.has(method.id)
+
+        // Bundled item collapsible
+        if (method.type === 'bundled' && method.bundledItemDetails) {
+          const bundled = method.bundledItemDetails
+
+          return (
+            <Collapsible key={method.id} open={isOpen} onOpenChange={() => toggleMethod(method.id)}>
+              <CollapsibleTrigger className="w-full p-3 sm:p-4 bg-neutral-50 dark:bg-neutral-800/70 hover:bg-neutral-100 dark:hover:bg-neutral-700/40 rounded-lg border border-neutral-200 dark:border-neutral-700 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <ChevronDown className={`h-5 w-5 text-neutral-600 dark:text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    {/* Trader portrait with icon overlay */}
+                    <div className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-600 flex items-center justify-center flex-shrink-0 relative">
+
+                      <img
+                        src={`https://tarkov.dev/images/traders/${bundled.trader.toLowerCase()}-portrait.png`}
+                        alt={bundled.trader}
+                        className="w-full h-full rounded object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = `https://via.placeholder.com/48x48/374151/9CA3AF?text=${bundled.trader.charAt(0)}`
+                        }}
+                      />
+                      {/* Barter icon in corner */}
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-neutral-800 dark:bg-neutral-700 rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-800">
+                        <ArrowRightLeft className="h-3 w-3 text-orange-500" />
+                      </div>
+                    </div>
+
+                    {/* Bundled item image */}
+                    <img
+                      src={bundled.bundledItemShortName === 'M4A1 REAP-IR'
+                        ? 'https://assets.tarkov.dev/coltm4a1reapir0000000001-512.webp'
+                        : item.iconLink || ''
+                      }
+                      alt={bundled.bundledItemShortName}
+                      className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-900 object-contain flex-shrink-0"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = item.iconLink || ''
+                      }}
+                    />
+
+                    <div className="text-left min-w-0 flex-1">
+                      <div className="font-semibold text-neutral-900 dark:text-neutral-100 text-sm sm:text-base">
+                        {bundled.bundledItemShortName}
+                      </div>
+                      <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+                        <div className="flex flex-wrap gap-1 sm:gap-2">
+                          <span>Net: {formatCurrency(bundled.netCost)}</span>
+                          <span>•</span>
+                          <span>Barter: {formatCurrency(bundled.barterCost)}</span>
+                          <span>•</span>
+                          <span>Sell: {formatCurrency(bundled.totalSellValue)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between sm:justify-end gap-3">
+                    <div className="text-right">
+                      <div className="font-bold text-neutral-900 dark:text-neutral-100 text-lg sm:text-xl">
+                        {formatCurrency(bundled.netCost)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent>
+                <div className="mt-2 space-y-4">
+                  {/* Required Items */}
+                  {bundled.requiredItems && bundled.requiredItems.length > 0 && (
+                    <div>
+                      <ItemTable
+                        items={bundled.requiredItems.map((req: any): TableItem => {
+                          const fleaPrice = itemPriceCache.get(req.item.id) || 0
+                          const totalCost = fleaPrice * req.count
+                          // Get price change data from requiredItemsData
+                          const requiredItemData = requiredItemsData?.get(req.item.id)
+                          return {
+                            id: req.item.id || `req-${req.item.name}`,
+                            image: req.item.iconLink,
+                            name: req.item.name,
+                            shortName: req.item.shortName,
+                            count: req.count,
+                            unitPrice: fleaPrice,
+                            totalPrice: totalCost,
+                            changeLast48hPercent: requiredItemData?.changeLast48hPercent,
+                            wikiLink: req.item.wikiLink
+                          }
+                        })}
+                        theme="light"
+                        allItemPrices={allItemPrices}
+                        title="Required Items"
+                      />
+                    </div>
+                  )}
+
+                  {/* Weapon Parts Strategy */}
+                  {bundled.weaponParts && bundled.weaponParts.length > 0 && (
+                    <div>
+                      <h6 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                        Weapon Parts Strategy
+                      </h6>
+
+                      {/* Flea Market Items */}
+                      {bundled.weaponParts.filter((part: any) => part.recommendFlea && !part.isKeepForQuest).length > 0 && (
+                        <div className="mb-3">
+                          <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                            Sell on Flea Market ({formatCurrency(bundled.fleaSellValue)})
+                          </div>
+                          <ItemTable
+                            items={bundled.weaponParts.filter((part: any) => part.recommendFlea && !part.isKeepForQuest).map((part: any): TableItem => ({
+                              id: part.id,
+                              image: part.iconLink,
+                              name: part.name,
+                              shortName: part.shortName,
+                              count: part.count,
+                              unitPrice: part.fleaPrice,
+                              totalPrice: part.sellValue,
+                              changeLast48h: part.changeLast48h,
+                              fleaPrice: part.fleaPrice
+                            }))}
+                            theme="light"
+                            allItemPrices={allItemPrices}
+                          />
+                        </div>
+                      )}
+
+                      {/* Trader Items Summary */}
+                      {bundled.traderSellValue > 0 && (
+                        <div className="bg-white dark:bg-neutral-700 rounded p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                              Remaining parts to traders:
+                            </span>
+                            <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                              {formatCurrency(bundled.traderSellValue)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )
+        }
+
+        // Regular craft/barter collapsible
+        return (
+          <Collapsible key={method.id} open={isOpen} onOpenChange={() => toggleMethod(method.id)}>
+            <CollapsibleTrigger className="w-full p-4 bg-neutral-50 dark:bg-neutral-800/70 hover:bg-neutral-100 dark:hover:bg-neutral-700/40 rounded-lg border border-neutral-200 dark:border-neutral-700 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <ChevronDown className={`h-5 w-5 text-neutral-600 dark:text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  {/* Trader portrait with icon overlay */}
+                  {method.data && 'trader' in method.data && method.data.trader && (
+                    <div className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-600 flex items-center justify-center flex-shrink-0 relative">
+                      <img
+                        src={`https://tarkov.dev/images/traders/${method.data.trader.normalizedName.toLowerCase()}-portrait.png`}
+                        alt={method.data.trader.name}
+                        className="w-full h-full rounded object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = `https://via.placeholder.com/48x48/374151/9CA3AF?text=${method.data.trader.name.charAt(0)}`
+                        }}
+                      />
+                      {/* Method icon in corner */}
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-neutral-800 dark:bg-neutral-700 rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-800">
+                        <ArrowRightLeft className="h-3 w-3 text-green-500" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Workbench image for crafts */}
+                  {method.type === 'craft' && (
+                    <div className="w-12 h-12 rounded bg-neutral-200 dark:bg-neutral-600 flex items-center justify-center flex-shrink-0 relative">
+                      <img
+                        src="https://assets.tarkov.dev/station-workbench.png"
+                        alt="Workbench"
+                        className="w-full h-full rounded object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = `https://via.placeholder.com/48x48/374151/9CA3AF?text=W`
+                        }}
+                      />
+                      {/* Craft icon in corner */}
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-neutral-800 dark:bg-neutral-700 rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-800">
+                        <Hammer className="h-3 w-3 text-blue-500" />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-left min-w-0 flex-1">
+                    <div className="font-semibold text-neutral-900 dark:text-neutral-100 text-sm sm:text-base">
+                      {method.details}
+                    </div>
+                    <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+                      {method.data?.requiredItems && method.data.requiredItems.length > 0 && (
+                        <span>{method.data.requiredItems.length} required item{method.data.requiredItems.length > 1 ? 's' : ''}</span>
+                      )}
+                      {method.type === 'craft' && method.data && 'duration' in method.data && (
+                        <span className="ml-2">• {Math.floor(method.data.duration / 60)}m duration</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between sm:justify-end gap-3">
+                  <div className="text-right">
+                    <div className="font-bold text-neutral-900 dark:text-neutral-100 text-lg sm:text-xl">
+                      {formatCurrency(method.costInRubles)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent>
+              <div className="mt-4">
+                {/* Quest unlock warning */}
+                {method.type === 'barter' && method.data && 'taskUnlock' in method.data && method.data.taskUnlock && (
+                  <div className="mb-3 p-2 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded">
+                    <div className="text-xs text-amber-800 dark:text-amber-200 font-medium">
+                      ⚠️ Requires Quest: {method.data.taskUnlock.name}
+                    </div>
+                  </div>
+                )}
+
+                {/* Required items table */}
+                {method.data?.requiredItems && method.data.requiredItems.length > 0 && (
+                  <div>
+                    <ItemTable
+                      items={method.data.requiredItems.map((req: any): TableItem => {
+                        const fleaPrice = itemPriceCache.get(req.item.id) || 0
+                        const totalCost = fleaPrice * req.count
+                        // Get price change data from requiredItemsData
+                        const requiredItemData = requiredItemsData?.get(req.item.id)
+                        return {
+                          id: req.item.id || `craft-req-${req.item.name}`,
+                          image: req.item.iconLink,
+                          name: req.item.name,
+                          shortName: req.item.shortName,
+                          count: req.count,
+                          unitPrice: fleaPrice,
+                          totalPrice: totalCost,
+                          changeLast48hPercent: requiredItemData?.changeLast48hPercent,
+                          wikiLink: req.item.wikiLink
+                        }
+                      })}
+                      theme="light"
+                      allItemPrices={allItemPrices}
+                      title="Required Items"
+                    />
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )
+      })}
+    </div>
+  )
+}
+
 export const QuestTable: React.FC<QuestTableProps> = ({
   questName,
   items,
   isExpanded,
   bitcoinFarmLevel,
   itemPriceCache,
-  onToggleExpansion
+  gameMode,
+  onToggleExpansion,
+  allItemPrices,
+  requiredItemsData
 }) => {
-  const totalCost = items.reduce((sum, item) => sum + getTotalValue(item), 0)
+  const totalCost = items.reduce((sum, item) => sum + getTotalValue(item, gameMode), 0)
   const fleaRestrictedItems = items.filter(item => isFleaMarketRestricted(item))
   const fleaAvailableItems = items.filter(item => !isFleaMarketRestricted(item))
+
+  // Helper function to get the correct price based on game mode
+  const getItemPrice = (item: ItemPrice) => {
+    // For flea restricted items, use acquisition method cost
+    if (isFleaMarketRestricted(item) && item.cheapestAcquisitionMethod?.costInRubles) {
+      return item.cheapestAcquisitionMethod.costInRubles
+    }
+
+    // For flea available items, use game mode specific pricing
+    return gameMode === 'pve' ? (item.pvePrice || 0) : (item.pvpPrice || 0)
+  }
 
   return (
     <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
       {/* Header */}
-      <button 
+      <button
         className="w-full bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-left"
         onClick={() => onToggleExpansion(questName)}
       >
-        <div className="flex items-center justify-between p-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-4 sm:p-6">
+          <div className="flex items-center gap-3">
             <ChevronDown className={`h-5 w-5 text-neutral-600 dark:text-neutral-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-            <div className="text-left">
-              <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-neutral-100 truncate">
                   {questName}
                 </h3>
                 {QUEST_WIKI_LINKS[questName] && (
@@ -76,129 +417,78 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                     href={QUEST_WIKI_LINKS[questName]}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex-shrink-0"
                     onClick={(e) => e.stopPropagation()}
+                    title="View quest on Wiki"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 )}
               </div>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
                 {items.length} items • {fleaRestrictedItems.length} restricted
               </p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between sm:justify-end gap-4">
             <div className="text-right">
-              <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+              <div className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100">
                 {formatCurrency(totalCost)}
+              </div>
+              <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
+                Total Cost ({gameMode.toUpperCase()})
               </div>
             </div>
           </div>
         </div>
       </button>
 
+      {/* Content */}
       {isExpanded && (
-        <div>
-          <div className="border-t border-neutral-200 dark:border-neutral-700">
-            {/* Flea Market Available Items */}
-            {fleaAvailableItems.length > 0 && (
-              <div className="p-6 border-b border-neutral-200 dark:border-neutral-700">
-                <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
-                  Flea Market Available
-                </h4>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-neutral-50 dark:bg-neutral-800">
-                        <th className="text-left p-3 text-neutral-700 dark:text-neutral-300 font-medium w-16">Image</th>
-                        <th className="text-left p-3 text-neutral-700 dark:text-neutral-300 font-medium">Item</th>
-                        <th className="text-center p-3 text-neutral-700 dark:text-neutral-300 font-medium w-16">Qty</th>
-                        <th className="text-right p-3 text-neutral-700 dark:text-neutral-300 font-medium w-32">Unit Price</th>
-                        <th className="text-right p-3 text-neutral-700 dark:text-neutral-300 font-medium w-32">Total</th>
-                        <th className="text-center p-3 text-neutral-700 dark:text-neutral-300 font-medium w-24">Change</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {fleaAvailableItems.map((item) => (
-                        <tr key={item.id} className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-                          <td className="p-3">
-                            {item.iconLink && (
-                              <div className="w-12 h-12 flex-shrink-0">
-                                <Image 
-                                  src={item.iconLink} 
-                                  alt={item.name}
-                                  width={48}
-                                  height={48}
-                                  className="object-contain w-full h-full"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                  }}
-                                  unoptimized={true}
-                                />
-                              </div>
-                            )}
-                          </td>
-                          <td className="p-3">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2">
-                                <div className="font-medium text-neutral-900 dark:text-neutral-100">
-                                  {item.shortName}
-                                </div>
-                                {item.wikiLink && (
-                                  <a
-                                    href={item.wikiLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-                                  >
-                                    <ExternalLink className="h-3 w-3" />
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-3 text-center">
-                            <Badge variant="secondary">
-                              {item.quantity}
-                            </Badge>
-                          </td>
-                          <td className="p-3 text-right font-mono text-neutral-700 dark:text-neutral-300">
-                            {formatCurrency(item.avg24hPrice || 0)}
-                          </td>
-                          <td className="p-3 text-right font-mono font-semibold text-neutral-900 dark:text-neutral-100">
-                            {formatCurrency((item.avg24hPrice || 0) * item.quantity)}
-                          </td>
-                          <td className="p-3 text-center">
-                            {getPriceChangeBadge(item.changeLast48hPercent)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+        <div className="border-t border-neutral-200 dark:border-neutral-700">
+          {/* Flea Market Available Items */}
+          {fleaAvailableItems.length > 0 && (
+            <div className="p-4 sm:p-6">
+              <h4 className="text-base sm:text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3 sm:mb-4 flex items-center gap-2">
+                <span className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></span>
+                <span className="truncate">Flea Market Available ({fleaAvailableItems.length})</span>
+              </h4>
 
-            {/* Flea Market Restricted Items */}
-            {fleaRestrictedItems.length > 0 && (
-              <div className="p-6 space-y-6">
-                <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                  Flea Market Restricted Items
-                </h4>
-                
+              <ItemTable
+                items={fleaAvailableItems.map((item): TableItem => ({
+                  id: item.id,
+                  image: item.iconLink,
+                  name: item.name,
+                  shortName: item.shortName,
+                  count: item.quantity,
+                  unitPrice: getItemPrice(item),
+                  totalPrice: getItemPrice(item) * item.quantity,
+                  changeLast48hPercent: item.changeLast48hPercent,
+                  wikiLink: item.wikiLink
+                }))}
+                theme="light"
+                allItemPrices={allItemPrices}
+              />
+            </div>
+          )}
+
+          {/* Flea Market Restricted Items */}
+          {fleaRestrictedItems.length > 0 && (
+            <div className={`p-4 sm:p-6 ${fleaAvailableItems.length > 0 ? 'border-t border-neutral-200 dark:border-neutral-700' : ''}`}>
+              <h4 className="text-base sm:text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2 flex items-center gap-2">
+                <span className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></span>
+                <span className="truncate">Flea Market Restricted ({fleaRestrictedItems.length})</span>
+              </h4>
+
+              <div className="space-y-4">
                 {fleaRestrictedItems.map((item) => (
-                  <div key={item.id} className="space-y-4">
-                    {/* Simple Item Header */}
-                    <div className="flex items-center justify-between py-2 border-b border-neutral-200 dark:border-neutral-700">
+                  <div key={item.id} className="py-4">
+                    <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         {item.iconLink && (
                           <div className="w-12 h-12 flex-shrink-0">
-                            <Image 
-                              src={item.iconLink} 
+                            <Image
+                              src={item.iconLink}
                               alt={item.name}
                               width={48}
                               height={48}
@@ -218,9 +508,9 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                                 {item.shortName}
                               </div>
                               {item.wikiLink && (
-                                <a 
-                                  href={item.wikiLink} 
-                                  target="_blank" 
+                                <a
+                                  href={item.wikiLink}
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
                                   title="View on Wiki"
@@ -239,26 +529,28 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                       <div className="flex items-center gap-4">
                         <div className="text-right">
                           <div className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-                            {formatCurrency(getTotalValue(item))}
+                            {formatCurrency(getTotalValue(item, gameMode))}
                           </div>
                           <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                            Total Cost
+                            Total Cost ({gameMode.toUpperCase()})
                           </div>
                         </div>
                       </div>
                     </div>
-                    
-                    {/* All Acquisition Methods */}
-                    <FleaRestrictedItemTable
+
+                    {/* Detailed acquisition method analysis */}
+                    <ItemAcquisitionAnalysis
                       item={item}
                       bitcoinFarmLevel={bitcoinFarmLevel}
                       itemPriceCache={itemPriceCache}
+                      allItemPrices={allItemPrices}
+                      requiredItemsData={requiredItemsData}
                     />
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -32,6 +32,16 @@ export const TARKOV_ITEMS = [
   { name: 'Bottle of Fierce Hatchling moonshine', searchTerm: 'Fierce Hatchling', quantity: 15, category: 'A Life Lesson', questOrder: 6 },
 ]
 
+// Bundled items mapping - items that can be obtained as part of larger items
+export const BUNDLED_ITEMS = {
+  'REAP-IR': {
+    bundledItemName: 'Colt M4A1 5.56x45 assault rifle REAP-IR',
+    bundledSearchTerm: 'Colt M4A1 5.56x45 assault rifle REAP-IR',
+    description: 'M4A1 rifle with REAP-IR scope that can be stripped for the scope'
+  }
+  // Add more bundled items here as needed
+}
+
 export const EXTENDED_GRAPHQL_QUERY = `
   query GetItemsWithCraftsAndBarters($names: [String!]!) {
     items(names: $names) {
@@ -50,6 +60,47 @@ export const EXTENDED_GRAPHQL_QUERY = `
         source
         price
         currency
+        priceRUB
+        vendor {
+          name
+          normalizedName
+          ... on TraderOffer {
+            minTraderLevel
+            buyLimit
+          }
+          ... on FleaMarket {
+            foundInRaidRequired
+          }
+        }
+      }
+      containsItems {
+        item {
+          id
+          name
+          shortName
+          iconLink
+          avg24hPrice
+          lastLowPrice
+          changeLast48h
+          sellFor {
+            source
+            price
+            currency
+            priceRUB
+            vendor {
+              name
+              normalizedName
+              ... on TraderOffer {
+                minTraderLevel
+                buyLimit
+              }
+              ... on FleaMarket {
+                foundInRaidRequired
+              }
+            }
+          }
+        }
+        count
       }
       craftsFor {
         id
@@ -116,12 +167,28 @@ export const ITEM_PRICES_QUERY = `
   query GetItemPrices($ids: [ID!]!) {
     items(ids: $ids) {
       id
+      name
+      shortName
       avg24hPrice
       lastLowPrice
+      changeLast48h
+      changeLast48hPercent
       sellFor {
         source
         price
         currency
+        priceRUB
+        vendor {
+          name
+          normalizedName
+          ... on TraderOffer {
+            minTraderLevel
+            buyLimit
+          }
+          ... on FleaMarket {
+            foundInRaidRequired
+          }
+        }
       }
     }
   }
