@@ -70,7 +70,7 @@ export default function TarkovPriceChecker() {
             </div>
 
             {/* Right side - Controls */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-stretch sm:items-center gap-3 sm:gap-4">
               {/* Game Mode Toggle */}
               <div className="flex items-center gap-3">
                 <ToggleGroup value={gameMode} onValueChange={(value) => setGameMode(value as GameMode)}>

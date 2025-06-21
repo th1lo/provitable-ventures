@@ -174,7 +174,7 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
               </CollapsibleTrigger>
 
               <CollapsibleContent>
-                <div className="mt-2 space-y-4">
+                <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4 sm:px-0">
                   {/* Required Items */}
                   {bundled.requiredItems && bundled.requiredItems.length > 0 && (
                     <div>
@@ -206,14 +206,14 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
                   {/* Weapon Parts Strategy */}
                   {bundled.weaponParts && bundled.weaponParts.length > 0 && (
                     <div>
-                      <h6 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                      <h6 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2 px-1">
                         Weapon Parts Strategy
                       </h6>
 
                       {/* Flea Market Items */}
                       {bundled.weaponParts.filter((part: any) => part.recommendFlea && !part.isKeepForQuest).length > 0 && (
                         <div className="mb-3">
-                          <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                          <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2 px-1">
                             Sell on Flea Market ({formatCurrency(bundled.fleaSellValue)})
                           </div>
                           <ItemTable
@@ -325,7 +325,7 @@ const ItemAcquisitionAnalysis = ({ item, bitcoinFarmLevel, itemPriceCache, allIt
             </CollapsibleTrigger>
 
             <CollapsibleContent>
-              <div className="mt-4">
+              <div className="mt-3 sm:mt-4 px-2 sm:px-0">
                 {/* Quest unlock warning */}
                 {method.type === 'barter' && method.data && 'taskUnlock' in method.data && method.data.taskUnlock && (
                   <div className="mb-3 p-2 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded">
@@ -404,39 +404,39 @@ export const QuestTable: React.FC<QuestTableProps> = ({
         className="w-full bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-left"
         onClick={() => onToggleExpansion(questName)}
       >
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-4 sm:p-6">
-          <div className="flex items-center gap-3">
-            <ChevronDown className={`h-5 w-5 text-neutral-600 dark:text-neutral-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-neutral-100 truncate">
-                  {questName}
-                </h3>
-                {QUEST_WIKI_LINKS[questName] && (
-                  <a
-                    href={QUEST_WIKI_LINKS[questName]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex-shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                    title="View quest on Wiki"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                )}
+        <div className="p-4 sm:p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-neutral-600 dark:text-neutral-400 transition-transform ${isExpanded ? 'rotate-180' : ''} mt-0.5 flex-shrink-0`} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-neutral-900 dark:text-neutral-100 truncate">
+                    {questName}
+                  </h3>
+                  {QUEST_WIKI_LINKS[questName] && (
+                    <a
+                      href={QUEST_WIKI_LINKS[questName]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex-shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                      title="View quest on Wiki"
+                    >
+                      <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </a>
+                  )}
+                </div>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                  {items.length} items • {fleaRestrictedItems.length} restricted
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
-                {items.length} items • {fleaRestrictedItems.length} restricted
-              </p>
             </div>
-          </div>
-          <div className="flex items-center justify-between sm:justify-end gap-4">
-            <div className="text-right">
-              <div className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+            <div className="text-right flex-shrink-0">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-neutral-900 dark:text-neutral-100">
                 {formatCurrency(totalCost)}
               </div>
-              <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
-                Total Cost ({gameMode.toUpperCase()})
+              <div className="text-xs text-neutral-600 dark:text-neutral-400">
+                {gameMode.toUpperCase()}
               </div>
             </div>
           </div>
@@ -482,11 +482,11 @@ export const QuestTable: React.FC<QuestTableProps> = ({
 
               <div className="space-y-4">
                 {fleaRestrictedItems.map((item) => (
-                  <div key={item.id} className="py-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
+                  <div key={item.id} className="py-3 sm:py-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         {item.iconLink && (
-                          <div className="w-12 h-12 flex-shrink-0">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
                             <Image
                               src={item.iconLink}
                               alt={item.name}
@@ -501,10 +501,10 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                             />
                           </div>
                         )}
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
                             <div className="flex items-center gap-2">
-                              <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                              <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm sm:text-base truncate">
                                 {item.shortName}
                               </div>
                               {item.wikiLink && (
@@ -512,7 +512,7 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                                   href={item.wikiLink}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex-shrink-0"
                                   title="View on Wiki"
                                 >
                                   <ExternalLink className="h-3 w-3" />
@@ -521,17 +521,17 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                             </div>
                             {getPriceChangeBadge(item.changeLast48hPercent)}
                           </div>
-                          <div className="text-sm text-neutral-500 dark:text-neutral-500">
+                          <div className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-500">
                             Quantity: {item.quantity} • Flea Market Restricted
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between sm:justify-end gap-4">
                         <div className="text-right">
-                          <div className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                          <div className="text-base sm:text-lg font-bold text-neutral-900 dark:text-neutral-100">
                             {formatCurrency(getTotalValue(item, gameMode))}
                           </div>
-                          <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                          <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
                             Total Cost ({gameMode.toUpperCase()})
                           </div>
                         </div>

@@ -121,113 +121,111 @@ export const ItemTable: React.FC<ItemTableProps> = ({
         </h6>
       )}
       <div className={themeClasses.container}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[500px]">
-            <thead>
-              <tr className={themeClasses.header}>
-                <th className={`text-left p-2 sm:p-3 ${themeClasses.headerText} w-12`}>Image</th>
-                <th className={`text-left p-2 sm:p-3 ${themeClasses.headerText}`}>Item</th>
-                <th className={`text-center p-2 sm:p-3 ${themeClasses.headerText} w-16`}>Qty</th>
-                <th className={`text-right p-2 sm:p-3 ${themeClasses.headerText} w-32 sm:w-40`}>Price</th>
-                <th className={`text-right p-2 sm:p-3 ${themeClasses.headerText} w-32 sm:w-40`}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, index) => {
-                const priceChange = getPriceChangeData(item)
-                
-                return (
-                  <tr key={item.id || index} className={themeClasses.row}>
-                    {/* Image */}
-                    <td className="p-2 sm:p-3">
-                      {item.image ? (
-                        isDark ? (
-                          <img 
-                            src={item.image} 
-                            alt={item.name}
-                            className="w-8 h-8 sm:w-8 sm:h-8 rounded bg-gray-600 object-contain"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.style.display = 'none'
-                            }}
-                          />
-                        ) : (
-                          <div className="w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0">
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              width={48}
-                              height={48}
-                              className="object-contain w-full h-full"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                              }}
-                              unoptimized={true}
-                            />
-                          </div>
-                        )
-                      ) : null}
-                    </td>
-                    
-                    {/* Item Name + External Link */}
-                    <td className="p-2 sm:p-3">
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        <span className={`${themeClasses.cellText} text-xs sm:text-sm truncate`}>
-                          {item.shortName || item.name}
-                        </span>
-                        {showExternalLinks && item.wikiLink && (
-                          <a
-                            href={item.wikiLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex-shrink-0"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                    </td>
-                    
-                    {/* Quantity */}
-                    <td className="p-2 sm:p-3 text-center">
-                      {isDark ? (
-                        <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-gray-600 rounded text-xs text-gray-300">
-                          {item.count}
-                        </span>
+        <table className="w-full text-sm border-spacing-0">
+          <thead>
+            <tr className={themeClasses.header}>
+              <th className={`text-left py-2 px-2 sm:py-3 sm:px-3 ${themeClasses.headerText} w-10 sm:w-12`}>Image</th>
+              <th className={`text-left py-2 px-2 sm:py-3 sm:px-3 ${themeClasses.headerText}`}>Item</th>
+              <th className={`text-center py-2 px-2 sm:py-3 sm:px-3 ${themeClasses.headerText} w-12 sm:w-16`}>Qty</th>
+              <th className={`text-right py-2 px-2 sm:py-3 sm:px-3 ${themeClasses.headerText} w-20 sm:w-32 md:w-40`}>Price</th>
+              <th className={`text-right py-2 px-2 sm:py-3 sm:px-3 ${themeClasses.headerText} w-20 sm:w-32 md:w-40`}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, index) => {
+              const priceChange = getPriceChangeData(item)
+              
+              return (
+                <tr key={item.id || index} className={themeClasses.row}>
+                  {/* Image */}
+                  <td className="py-2 px-2 sm:py-2.5 sm:px-3">
+                    {item.image ? (
+                      isDark ? (
+                        <img 
+                          src={item.image} 
+                          alt={item.name}
+                          className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-gray-600 object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                          }}
+                        />
                       ) : (
-                        <Badge variant="secondary" className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-1">
-                          {item.count}
-                        </Badge>
-                      )}
-                    </td>
-                    
-                    {/* Price + Change % */}
-                    <td className="p-2 sm:p-3 text-right">
-                      <div className={`${themeClasses.cellTextSecondary} text-xs sm:text-sm`}>
-                        <div className="whitespace-nowrap">
-                          {formatCurrency(item.unitPrice)}
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 flex-shrink-0">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            width={40}
+                            height={40}
+                            className="object-contain w-full h-full"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                            unoptimized={true}
+                          />
                         </div>
-                        {priceChange !== undefined && (
-                          <div className={`text-xs ${priceChange > 0 ? 'text-green-600 dark:text-green-400' : priceChange < 0 ? 'text-red-600 dark:text-red-400' : 'text-neutral-500'}`}>
-                            {priceChange > 0 ? '+' : ''}{priceChange.toFixed(1)}%
-                          </div>
-                        )}
+                      )
+                    ) : null}
+                  </td>
+                  
+                  {/* Item Name + External Link */}
+                  <td className="py-2 px-2 sm:py-2.5 sm:px-3">
+                    <div className="flex items-center gap-1">
+                      <span className={`${themeClasses.cellText} text-xs sm:text-sm truncate`} title={item.shortName || item.name}>
+                        {item.shortName || item.name}
+                      </span>
+                      {showExternalLinks && item.wikiLink && (
+                        <a
+                          href={item.wikiLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex-shrink-0"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                  
+                  {/* Quantity */}
+                  <td className="py-2 px-2 sm:py-2.5 sm:px-3 text-center">
+                    {isDark ? (
+                      <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 bg-gray-600 rounded text-xs text-gray-300">
+                        {item.count}
+                      </span>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">
+                        {item.count}
+                      </Badge>
+                    )}
+                  </td>
+                  
+                  {/* Price + Change % */}
+                  <td className="py-2 px-2 sm:py-2.5 sm:px-3 text-right">
+                    <div className={`${themeClasses.cellTextSecondary} text-xs`}>
+                      <div>
+                        {formatCurrency(item.unitPrice)}
                       </div>
-                    </td>
-                    
-                    {/* Total */}
-                    <td className="p-2 sm:p-3 text-right">
-                      <div className={`${themeClasses.cellTextSecondary} text-xs sm:text-sm whitespace-nowrap`}>
-                        {formatCurrency(item.totalPrice)}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                      {priceChange !== undefined && (
+                        <div className={`text-xs ${priceChange > 0 ? 'text-green-600 dark:text-green-400' : priceChange < 0 ? 'text-red-600 dark:text-red-400' : 'text-neutral-500'}`}>
+                          {priceChange > 0 ? '+' : ''}{priceChange.toFixed(1)}%
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  
+                  {/* Total */}
+                  <td className="py-2 px-2 sm:py-2.5 sm:px-3 text-right">
+                    <div className={`${themeClasses.cellTextSecondary} text-xs`}>
+                      {formatCurrency(item.totalPrice)}
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   )
