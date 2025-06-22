@@ -536,58 +536,70 @@ export const QuestTable: React.FC<QuestTableProps> = ({
 
         // Calculate change from required items (LEDX cost)
         bundled.requiredItems?.forEach(req => {
-          // Try to find the item in allItemPrices first (works for both PvP and PvE)
-          const itemInAllPrices = allItemPrices?.find(item => item.id === req.item.id)
+          let priceChangePercent: number | undefined
           
-          if (itemInAllPrices?.changeLast48hPercent !== undefined) {
-            const reqPrice = getRequiredItemPrice(req.item.id)
-            const reqTotalCost = reqPrice * req.count
-            bundledWeightedChange += (itemInAllPrices.changeLast48hPercent || 0) * reqTotalCost
-            bundledWeight += reqTotalCost
-            
-            if (questName === 'Profitable Ventures') {
-              console.log('- Found in allItemPrices, change:', itemInAllPrices.changeLast48hPercent, 'cost:', reqTotalCost)
-            }
-          } else {
-            // Fallback to requiredItemsData if not found in allItemPrices
+          // For PvE mode, prioritize requiredItemsData which has game mode-specific data
+          if (gameMode === 'pve') {
             const reqItemData = requiredItemsData?.get(req.item.id)
             if (reqItemData?.changeLast48hPercent !== undefined) {
-              const reqPrice = getRequiredItemPrice(req.item.id)
-              const reqTotalCost = reqPrice * req.count
-              bundledWeightedChange += (reqItemData.changeLast48hPercent || 0) * reqTotalCost
-              bundledWeight += reqTotalCost
-              
-              if (questName === 'Profitable Ventures') {
-                console.log('- Found in requiredItemsData, change:', reqItemData.changeLast48hPercent, 'cost:', reqTotalCost)
-              }
-            } else if (questName === 'Profitable Ventures') {
-              console.log('- NOT FOUND in either source!')
+              priceChangePercent = reqItemData.changeLast48hPercent
+            } else {
+              // Fallback to allItemPrices for PvE if requiredItemsData doesn't have it
+              const itemInAllPrices = allItemPrices?.find(item => item.id === req.item.id)
+              priceChangePercent = itemInAllPrices?.changeLast48hPercent
             }
+          } else {
+            // For PvP mode, try allItemPrices first, then requiredItemsData
+            const itemInAllPrices = allItemPrices?.find(item => item.id === req.item.id)
+            if (itemInAllPrices?.changeLast48hPercent !== undefined) {
+              priceChangePercent = itemInAllPrices.changeLast48hPercent
+            } else {
+              const reqItemData = requiredItemsData?.get(req.item.id)
+              priceChangePercent = reqItemData?.changeLast48hPercent
+            }
+          }
+          
+          if (priceChangePercent !== undefined) {
+            const reqPrice = getRequiredItemPrice(req.item.id)
+            const reqTotalCost = reqPrice * req.count
+            bundledWeightedChange += (priceChangePercent || 0) * reqTotalCost
+            bundledWeight += reqTotalCost
           }
         })
 
         // Calculate change from weapon parts (money you get back - negative impact on net cost)
         bundled.weaponParts?.forEach(part => {
-          // Try to find weapon part in allItemPrices for consistent data across PvP/PvE
-          const partInAllPrices = allItemPrices?.find(item => item.id === part.id)
           let partPriceChange: number | undefined
           
-          if (partInAllPrices?.changeLast48hPercent !== undefined) {
-            // Use percentage change directly from allItemPrices
-            partPriceChange = partInAllPrices.changeLast48hPercent
-            
-            if (questName === 'Profitable Ventures') {
-              console.log('- Found part in allItemPrices, change:', partPriceChange, 'sellValue:', part.sellValue)
+          // For PvE mode, prioritize requiredItemsData which has game mode-specific data
+          if (gameMode === 'pve') {
+            const partItemData = requiredItemsData?.get(part.id)
+            if (partItemData?.changeLast48hPercent !== undefined) {
+              partPriceChange = partItemData.changeLast48hPercent
+            } else {
+              // Fallback to allItemPrices for PvE if requiredItemsData doesn't have it
+              const partInAllPrices = allItemPrices?.find(item => item.id === part.id)
+              if (partInAllPrices?.changeLast48hPercent !== undefined) {
+                partPriceChange = partInAllPrices.changeLast48hPercent
+              } else if (part.changeLast48h !== undefined && part.fleaPrice > 0) {
+                // Calculate from changeLast48h and fleaPrice as final fallback
+                partPriceChange = (part.changeLast48h / part.fleaPrice) * 100
+              }
             }
-          } else if (part.changeLast48h !== undefined && part.fleaPrice > 0) {
-            // Calculate from changeLast48h and fleaPrice as fallback
-            partPriceChange = (part.changeLast48h / part.fleaPrice) * 100
-            
-            if (questName === 'Profitable Ventures') {
-              console.log('- Calculated part change from changeLast48h:', partPriceChange, 'sellValue:', part.sellValue)
+          } else {
+            // For PvP mode, try allItemPrices first, then requiredItemsData, then calculate
+            const partInAllPrices = allItemPrices?.find(item => item.id === part.id)
+            if (partInAllPrices?.changeLast48hPercent !== undefined) {
+              partPriceChange = partInAllPrices.changeLast48hPercent
+            } else {
+              const partItemData = requiredItemsData?.get(part.id)
+              if (partItemData?.changeLast48hPercent !== undefined) {
+                partPriceChange = partItemData.changeLast48hPercent
+              } else if (part.changeLast48h !== undefined && part.fleaPrice > 0) {
+                // Calculate from changeLast48h and fleaPrice as final fallback
+                partPriceChange = (part.changeLast48h / part.fleaPrice) * 100
+              }
             }
-          } else if (questName === 'Profitable Ventures') {
-            console.log('- Part price change NOT FOUND')
           }
           
           if (partPriceChange !== undefined) {

@@ -7,12 +7,13 @@ export interface ItemPrice {
   avg24hPrice: number
   lastLowPrice: number
   changeLast48h: number
-  changeLast48hPercent: number
+  changeLast48hPercent?: number
   updated: string
   iconLink: string
   wikiLink: string
   quantity: number
   category: string
+  questOrder?: number
   crafts: Craft[]
   barters: Barter[]
   fleaMarketFee?: number

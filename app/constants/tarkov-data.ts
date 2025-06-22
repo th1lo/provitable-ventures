@@ -3,7 +3,7 @@ export const TARKOV_ITEMS = [
   { name: 'Trijicon REAP-IR thermal imaging riflescope', searchTerm: 'REAP-IR', quantity: 15, category: 'Profitable Ventures', questOrder: 1 },
   
   // Safety Guarantee
-  { name: 'BNTI Zhuk body armor', searchTerm: 'Zhuk', quantity: 15, category: 'Safety Guarantee', questOrder: 2 },
+  { name: 'BNTI Zhuk body armor (EMR)', searchTerm: 'BNTI Zhuk', quantity: 15, category: 'Safety Guarantee', questOrder: 2 },
   { name: 'Vulkan-5 LShZ-5 bulletproof helmet', searchTerm: 'LShZ-5', quantity: 12, category: 'Safety Guarantee', questOrder: 2 },
   { name: 'Maska-1SCh face shield', searchTerm: 'Maska-1SCh', quantity: 3, category: 'Safety Guarantee', questOrder: 2 },
   
@@ -32,6 +32,26 @@ export const TARKOV_ITEMS = [
   { name: 'Bottle of Fierce Hatchling moonshine', searchTerm: 'Fierce Hatchling', quantity: 15, category: 'A Life Lesson', questOrder: 6 },
 ]
 
+// Quest IDs for the quests we want to track
+export const TARGET_QUEST_IDS = [
+  '67af4c1405c58dc6f7056667',  // Profitable Venture
+  '67af4c169d95ad16e004fd86', // Safety Guarantee
+  '67af4c17f4f1fb58a907f8f6', // Never Too Late To Learn
+  '67af4c1991ee75c6d7060a16', // Get a Foothold
+  '67af4c1a6c3ebfd8e6034916', // Profit Retention
+  '7af4c1cc0e59d55e2010b97' // A Life Lesson
+]
+
+// Quest names mapping for our quest order
+export const QUEST_NAME_MAPPING: Record<string, number> = {
+  'Profitable Venture': 1,
+  'Safety Guarantee': 2,
+  'Never Too Late To Learn': 3,
+  'Get a Foothold': 4,
+  'Profit Retention': 5,
+  'A Life Lesson': 6
+}
+
 // Bundled items mapping - items that can be obtained as part of larger items
 export const BUNDLED_ITEMS = {
   'REAP-IR': {
@@ -41,6 +61,34 @@ export const BUNDLED_ITEMS = {
   }
   // Add more bundled items here as needed
 }
+
+// GraphQL query to fetch quest data from Tarkov Dev API
+export const QUEST_DATA_QUERY = `
+  query GetQuestData {
+    tasks {
+      id
+      name
+      trader {
+        id
+        name
+      }
+      objectives {
+        id
+        description
+        type
+        ... on TaskObjectiveItem {
+          item {
+            id
+            name
+            shortName
+          }
+          count
+          foundInRaid
+        }
+      }
+    }
+  }
+`
 
 export const EXTENDED_GRAPHQL_QUERY = `
   query GetItemsWithCraftsAndBarters($names: [String!]!) {
@@ -208,7 +256,7 @@ export const TRADER_RESET_TIMES: Record<string, number> = {
 
 // Quest wiki links
 export const QUEST_WIKI_LINKS: Record<string, string> = {
-    'Profitable Ventures': 'https://escapefromtarkov.fandom.com/wiki/Profitable_Venture',
+  'Profitable Ventures': 'https://escapefromtarkov.fandom.com/wiki/Profitable_Venture',
   'Safety Guarantee': 'https://escapefromtarkov.fandom.com/wiki/Safety_Guarantee',
   'Never Too Late To Learn': 'https://escapefromtarkov.fandom.com/wiki/Never_Too_Late_To_Learn',
   'Get a Foothold': 'https://escapefromtarkov.fandom.com/wiki/Get_a_Foothold',

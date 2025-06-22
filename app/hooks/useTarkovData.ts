@@ -204,17 +204,22 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
       return acc
     }, {} as Record<string, ItemPrice[]>)
 
-    // Sort by quest order
-    const questOrder = ['Profitable Ventures', 'Safety Guarantee', 'Never Too Late To Learn', 'Get a Foothold', 'Profit Retention', 'A Life Lesson']
-    const sortedQuests: Array<[string, ItemPrice[]]> = []
-    
-    questOrder.forEach(questName => {
-      if (grouped[questName]) {
-        sortedQuests.push([questName, grouped[questName]])
+    // Sort by quest order using dynamic quest names and questOrder field
+    const questsWithOrder = Object.entries(grouped).map(([questName, items]) => ({
+      questName,
+      items,
+      order: items[0]?.questOrder || 999
+    }))
+
+    // Sort by questOrder, then by name for consistency
+    questsWithOrder.sort((a, b) => {
+      if (a.order !== b.order) {
+        return a.order - b.order
       }
+      return a.questName.localeCompare(b.questName)
     })
 
-    return sortedQuests
+    return questsWithOrder.map(({ questName, items }) => [questName, items] as [string, ItemPrice[]])
   }
 
   return {

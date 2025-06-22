@@ -1,91 +1,522 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TARKOV_ITEMS, EXTENDED_GRAPHQL_QUERY, BUNDLED_ITEMS } from '../../constants/tarkov-data'
 import { fetchItemPrices, fetchRequiredItemsData } from '../../utils/tarkov-utils'
 import type { GameMode, ApiItem, ItemPrice } from '../../types/tarkov'
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function GET(_request: NextRequest) {
-  try {
-    const startTime = performance.now()
-    
-    // Prepare search terms
-    const searchTerms = TARKOV_ITEMS.map(item => item.searchTerm)
-    const bundledItemTerms = Object.values(BUNDLED_ITEMS).map(bundle => bundle.bundledSearchTerm)
-    const allSearchTerms = [...searchTerms, ...bundledItemTerms]
+// Red Achievement Quest IDs - the only hardcoded data
+const RED_ACHIEVEMENT_QUEST_IDS = [
+  '67af4c1405c58dc6f7056667', // Profitable Venture
+  '67af4c169d95ad16e004fd86', // Safety Guarantee
+  '67af4c17f4f1fb58a907f8f6', // Never Too Late To Learn
+  '67af4c1991ee75c6d7060a16', // Get a Foothold
+  '67af4c1a6c3ebfd8e6034916', // Profit Retention
+  '67af4c1cc0e59d55e2010b97', // A Life Lesson
+  '67af4c1d8c9482eca103e477'  // Consolation Prize
+]
 
-    // Fetch both PvP and PvE data simultaneously
-    const [pvpResponse, pveResponse] = await Promise.all([
-      fetch('https://api.tarkov.dev/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: EXTENDED_GRAPHQL_QUERY,
-          variables: { names: allSearchTerms }
-        })
-      }),
-      fetch('https://api.tarkov.dev/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: EXTENDED_GRAPHQL_QUERY.replace('items(names: $names)', 'items(names: $names, gameMode: pve)'),
-          variables: { names: allSearchTerms }
-        })
-      })
-    ])
+// Quest name to order mapping for UI consistency
+const QUEST_ORDER_MAPPING: Record<string, number> = {
+  'Profitable Venture': 1,
+  'Safety Guarantee': 2,
+  'Never Too Late To Learn': 3,
+  'Get a Foothold': 4,
+  'Profit Retention': 5,
+  'A Life Lesson': 6,
+  'Consolation Prize': 7
+}
 
-    if (!pvpResponse.ok || !pveResponse.ok) {
-      throw new Error(`HTTP error! PvP status: ${pvpResponse.status}, PvE status: ${pveResponse.status}`)
+interface QuestObjective {
+  id: string
+  description: string
+  type: string
+  item?: {
+    id: string
+    name: string
+    shortName: string
+  }
+  count?: number
+  foundInRaid?: boolean
+}
+
+interface Quest {
+  id: string
+  name: string
+  trader: {
+    id: string
+    name: string
+  }
+  objectives: QuestObjective[]
+}
+
+interface QuestApiResponse {
+  tasks: Quest[]
+}
+
+
+
+// Quest data query
+const QUEST_DATA_QUERY = `
+  query GetRedAchievementQuests {
+    tasks {
+      id
+      name
+      trader {
+        id
+        name
+      }
+      objectives {
+        id
+        description
+        type
+        ... on TaskObjectiveItem {
+          item {
+            id
+            name
+            shortName
+          }
+          count
+          foundInRaid
+        }
+      }
     }
+  }
+`
 
-    const [pvpData, pveData] = await Promise.all([
-      pvpResponse.json(),
-      pveResponse.json()
-    ])
-
-    if (pvpData.errors || pveData.errors) {
-      throw new Error((pvpData.errors || pveData.errors).map((e: { message: string }) => e.message).join(', '))
+// Bundled items query for weapons containing quest items
+const BUNDLED_ITEMS_QUERY = `
+  query GetBundledItems($names: [String!]!, $gameMode: GameMode) {
+    items(names: $names, gameMode: $gameMode) {
+      id
+      name
+      shortName
+      avg24hPrice
+      lastLowPrice
+      iconLink
+      categories {
+        id
+        name
+        normalizedName
+      }
+      containsItems {
+        item {
+          id
+          name
+          shortName
+          iconLink
+          avg24hPrice
+          lastLowPrice
+          changeLast48h
+          sellFor {
+            source
+            price
+            currency
+            priceRUB
+            vendor {
+              name
+              normalizedName
+              ... on TraderOffer {
+                minTraderLevel
+                buyLimit
+              }
+              ... on FleaMarket {
+                foundInRaidRequired
+              }
+            }
+          }
+        }
+        count
+      }
+      bartersFor {
+        id
+        trader {
+          id
+          name
+          normalizedName
+        }
+        level
+        requiredItems {
+          item {
+            id
+            name
+            shortName
+            iconLink
+            avg24hPrice
+            lastLowPrice
+            changeLast48hPercent
+          }
+          count
+        }
+        rewardItems {
+          item {
+            id
+            name
+            shortName
+          }
+          count
+        }
+      }
+      sellFor {
+        source
+        price
+        currency
+        priceRUB
+        vendor {
+          name
+          normalizedName
+          ... on TraderOffer {
+            minTraderLevel
+            buyLimit
+          }
+        }
+      }
     }
+  }
+`
 
-    // Create maps for bundled items for both game modes
-    const pvpBundledItemsMap = new Map<string, ApiItem>()
-    const pveBundledItemsMap = new Map<string, ApiItem>()
+// GraphQL query helper
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function graphqlQuery(query: string, variables: Record<string, unknown> = {}): Promise<any> {
+  const response = await fetch('https://api.tarkov.dev/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  if (!response.ok) {
+    throw new Error(`GraphQL HTTP error: ${response.status}`)
+  }
+
+  const data = await response.json()
+  
+  if (data.errors) {
+    throw new Error(`GraphQL errors: ${data.errors.map((e: { message: string }) => e.message).join(', ')}`)
+  }
+
+  return data.data
+}
+
+// Fetch Red Achievement quests dynamically
+async function fetchRedAchievementQuests(): Promise<Quest[]> {
+  const data: QuestApiResponse = await graphqlQuery(QUEST_DATA_QUERY)
+  
+  // Filter for Red Achievement quests only
+  const redAchievementQuests = data.tasks.filter((quest: Quest) => 
+    RED_ACHIEVEMENT_QUEST_IDS.includes(quest.id)
+  )
+  
+  // Filter for quests that have required items
+  const questsWithItems = redAchievementQuests.filter((quest: Quest) => 
+    quest.objectives.some((obj: QuestObjective) => obj.type === 'giveItem' && obj.item)
+  )
+  
+  return questsWithItems
+}
+
+// Extract quest items from dynamic quest data
+function extractQuestItems(quests: Quest[]): ItemPrice[] {
+  const questItems: ItemPrice[] = []
+  
+  quests.forEach(quest => {
+    const questOrder = QUEST_ORDER_MAPPING[quest.name] || 999
     
-    Object.entries(BUNDLED_ITEMS).forEach(([itemKey, bundle]) => {
-      const pvpBundledApiItem = pvpData.data.items.find((apiItem: ApiItem) => 
-        apiItem.name.toLowerCase().includes(bundle.bundledSearchTerm.toLowerCase()) ||
-        apiItem.shortName.toLowerCase().includes(bundle.bundledSearchTerm.toLowerCase())
-      )
-      const pveBundledApiItem = pveData.data.items.find((apiItem: ApiItem) => 
-        apiItem.name.toLowerCase().includes(bundle.bundledSearchTerm.toLowerCase()) ||
-        apiItem.shortName.toLowerCase().includes(bundle.bundledSearchTerm.toLowerCase())
-      )
-      
-      if (pvpBundledApiItem) pvpBundledItemsMap.set(itemKey, pvpBundledApiItem)
-      if (pveBundledApiItem) pveBundledItemsMap.set(itemKey, pveBundledApiItem)
+    quest.objectives.forEach(objective => {
+      if (objective.type === 'giveItem' && objective.item && objective.count) {
+        questItems.push({
+          id: objective.item.id,
+          name: objective.item.name,
+          shortName: objective.item.shortName,
+          avg24hPrice: 0, // Will be filled by API data
+          lastLowPrice: 0,
+          changeLast48h: 0,
+          changeLast48hPercent: 0,
+          updated: new Date().toISOString(),
+          iconLink: '',
+          wikiLink: '',
+          quantity: objective.count,
+          category: quest.name, // Use quest name as category
+          crafts: [],
+          barters: [],
+          fleaMarketFee: 0,
+          sellFor: [],
+          gameMode: 'pvp' as GameMode,
+          pvpPrice: 0,
+          pvePrice: 0,
+          questOrder: questOrder
+        })
+      }
     })
+  })
+  
+  return questItems
+}
 
-    // Map API results back to our item list with both PvP and PvE prices
-    const mappedPrices: ItemPrice[] = TARKOV_ITEMS.map(item => {
-      const pvpApiItem = pvpData.data.items.find((apiItem: ApiItem) => 
-        apiItem.name.toLowerCase().includes(item.searchTerm.toLowerCase()) ||
-        apiItem.shortName.toLowerCase().includes(item.searchTerm.toLowerCase())
+// Batch fetch items by IDs in chunks for performance
+async function fetchItemsByIds(itemIds: string[], gameMode: GameMode, batchSize: number = 50): Promise<ApiItem[]> {
+  const allItems: ApiItem[] = []
+  const batches: string[][] = []
+  
+  // Create batches
+  for (let i = 0; i < itemIds.length; i += batchSize) {
+    batches.push(itemIds.slice(i, i + batchSize))
+  }
+  
+  // Enhanced query for fetching by IDs
+  const ITEMS_BY_ID_QUERY = `
+    query GetItemsByIds($ids: [ID!]!, $gameMode: GameMode) {
+      items(ids: $ids, gameMode: $gameMode) {
+        id
+        name
+        shortName
+        avg24hPrice
+        lastLowPrice
+        changeLast48h
+        changeLast48hPercent
+        updated
+        iconLink
+        wikiLink
+        fleaMarketFee
+        categories {
+          id
+          name
+          normalizedName
+        }
+        sellFor {
+          source
+          price
+          currency
+          priceRUB
+          vendor {
+            name
+            normalizedName
+            ... on TraderOffer {
+              minTraderLevel
+              buyLimit
+            }
+            ... on FleaMarket {
+              foundInRaidRequired
+            }
+          }
+        }
+        containsItems {
+          item {
+            id
+            name
+            shortName
+            iconLink
+            avg24hPrice
+            lastLowPrice
+            changeLast48h
+            sellFor {
+              source
+              price
+              currency
+              priceRUB
+              vendor {
+                name
+                normalizedName
+                ... on TraderOffer {
+                  minTraderLevel
+                  buyLimit
+                }
+                ... on FleaMarket {
+                  foundInRaidRequired
+                }
+              }
+            }
+          }
+          count
+        }
+        craftsFor {
+          id
+          station {
+            id
+            name
+            normalizedName
+          }
+          level
+          duration
+          requiredItems {
+            item {
+              id
+              name
+              shortName
+              iconLink
+              avg24hPrice
+              lastLowPrice
+              changeLast48hPercent
+            }
+            count
+          }
+          rewardItems {
+            item {
+              id
+              name
+              shortName
+            }
+            count
+          }
+        }
+        bartersFor {
+          id
+          trader {
+            id
+            name
+            normalizedName
+          }
+          level
+          requiredItems {
+            item {
+              id
+              name
+              shortName
+              iconLink
+              avg24hPrice
+              lastLowPrice
+              changeLast48hPercent
+            }
+            count
+          }
+          rewardItems {
+            item {
+              id
+              name
+              shortName
+            }
+            count
+          }
+          taskUnlock {
+            id
+            name
+          }
+        }
+      }
+    }
+  `
+  
+  // Process batches with delay to avoid rate limiting
+  for (const batch of batches) {
+    try {
+      const data = await graphqlQuery(ITEMS_BY_ID_QUERY, { 
+        ids: batch, 
+        gameMode: gameMode === 'pve' ? 'pve' : undefined // Only pass gameMode for PvE
+      })
+      
+      if (data.items) {
+        allItems.push(...data.items)
+      }
+      
+      // Small delay between batches to be API-friendly
+      if (batches.length > 1) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+    } catch (error) {
+      console.error(`Batch fetch failed for item IDs: ${batch.join(', ')}`, error)
+      // Continue with other batches even if one fails
+    }
+  }
+  
+  return allItems
+}
+
+// Find bundled items that contain quest items (like M4A1 with REAP-IR)
+async function findBundledItems(questItems: ItemPrice[], gameMode: GameMode): Promise<Map<string, ApiItem>> {
+  const bundledItemsMap = new Map<string, ApiItem>()
+  
+  // Look for weapons that might contain quest items
+  const weaponSearchTerms = [
+    'M4A1 REAP-IR', // Known bundled item for REAP-IR
+    'Colt M4A1 5.56x45 assault rifle REAP-IR'
+  ]
+  
+  try {
+    const data = await graphqlQuery(BUNDLED_ITEMS_QUERY, { 
+      names: weaponSearchTerms,
+      gameMode: gameMode === 'pve' ? 'pve' : undefined
+    })
+    
+    if (data.items) {
+      data.items.forEach((item: ApiItem) => {
+        // Check if this bundled item contains any of our quest items
+        const containsQuestItem = item.containsItems?.some(contained => 
+          questItems.some(questItem => 
+            questItem.id === contained.item.id ||
+            questItem.shortName.toLowerCase().includes(contained.item.shortName.toLowerCase())
+          )
+        )
+        
+        if (containsQuestItem) {
+          // Map bundled items by the quest items they contain, not by their own shortName
+          item.containsItems?.forEach(contained => {
+            questItems.forEach(questItem => {
+              if (questItem.id === contained.item.id ||
+                  questItem.shortName.toLowerCase().includes(contained.item.shortName.toLowerCase())) {
+                bundledItemsMap.set(questItem.shortName, item)
+              }
+            })
+          })
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Failed to fetch bundled items:', error)
+    // Continue without bundled items if this fails
+  }
+  
+  return bundledItemsMap
+}
+
+export async function GET(request: NextRequest) {
+  const startTime = performance.now()
+  const gameMode = (request.nextUrl.searchParams.get('gameMode') || 'pvp') as GameMode
+  
+  try {
+    // Step 1: Fetch Red Achievement quests dynamically
+    const questData = await fetchRedAchievementQuests()
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Found ${questData.length} Red Achievement quests with required items`)
+    }
+    
+    // Step 2: Extract quest items from dynamic data
+    const dynamicQuestItems = extractQuestItems(questData)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Extracted ${dynamicQuestItems.length} quest items`)
+    }
+    
+    // Step 3: Prepare item IDs for API calls (use IDs instead of search terms)
+    const itemIds = dynamicQuestItems.map(item => item.id)
+    
+    // Step 4: Fetch both game modes simultaneously for comprehensive data
+    const [pvpItems, pveItems] = await Promise.all([
+      fetchItemsByIds(itemIds, 'pvp'),
+      fetchItemsByIds(itemIds, 'pve')
+    ])
+    
+    // Step 5: Find bundled items for both game modes
+    const [pvpBundledItems, pveBundledItems] = await Promise.all([
+      findBundledItems(dynamicQuestItems, 'pvp'),
+      findBundledItems(dynamicQuestItems, 'pve')
+    ])
+    
+    // Step 6: Map API results back to quest items with both PvP and PvE data
+    const mappedPrices: ItemPrice[] = dynamicQuestItems.map(questItem => {
+      // Find matching items in API results by ID (direct match)
+      const pvpApiItem = pvpItems.find((apiItem: ApiItem) => 
+        apiItem.id === questItem.id
       )
       
-      const pveApiItem = pveData.data.items.find((apiItem: ApiItem) => 
-        apiItem.name.toLowerCase().includes(item.searchTerm.toLowerCase()) ||
-        apiItem.shortName.toLowerCase().includes(item.searchTerm.toLowerCase())
+      const pveApiItem = pveItems.find((apiItem: ApiItem) => 
+        apiItem.id === questItem.id
       )
-
-      // Use PvP data as primary for general item data, fallback to PvE
+      
+      // Use PvP data as primary, fallback to PvE
       const primaryApiItem = pvpApiItem || pveApiItem
       
       // Get prices from both modes
       const pvpPrice = pvpApiItem?.avg24hPrice || pvpApiItem?.lastLowPrice || 0
       const pvePrice = pveApiItem?.avg24hPrice || pveApiItem?.lastLowPrice || 0
       
-      // Use PvP bundled item data as primary, fallback to PvE
-      const bundledApiItem = pvpBundledItemsMap.get(item.searchTerm) || pveBundledItemsMap.get(item.searchTerm)
-        
+      // Find bundled item if exists
+      const bundledApiItem = pvpBundledItems.get(questItem.shortName) || pveBundledItems.get(questItem.shortName)
+      
       const bundledItemData = bundledApiItem ? {
         id: bundledApiItem.id,
         name: bundledApiItem.name,
@@ -98,30 +529,31 @@ export async function GET(_request: NextRequest) {
       } : undefined
       
       return {
-        id: primaryApiItem?.id || `missing-${item.searchTerm}`,
-        name: primaryApiItem?.name || item.name,
-        shortName: primaryApiItem?.shortName || item.searchTerm,
-        avg24hPrice: pvpPrice, // Use PvP as default for compatibility
+        id: primaryApiItem?.id || questItem.id,
+        name: primaryApiItem?.name || questItem.name,
+        shortName: primaryApiItem?.shortName || questItem.shortName,
+        avg24hPrice: pvpPrice, // Default to PvP for compatibility
         lastLowPrice: primaryApiItem?.lastLowPrice || 0,
         changeLast48h: primaryApiItem?.changeLast48h || 0,
         changeLast48hPercent: primaryApiItem?.changeLast48hPercent ?? undefined,
         updated: primaryApiItem?.updated || new Date().toISOString(),
         iconLink: primaryApiItem?.iconLink || '',
         wikiLink: primaryApiItem?.wikiLink || '',
-        quantity: item.quantity,
-        category: item.category,
+        quantity: questItem.quantity,
+        category: questItem.category,
         crafts: primaryApiItem?.craftsFor || [],
         barters: primaryApiItem?.bartersFor || [],
         fleaMarketFee: primaryApiItem?.fleaMarketFee,
         sellFor: primaryApiItem?.sellFor || [],
-        gameMode: 'pvp' as GameMode, // Default to PvP, will be updated based on current mode
-        pvpPrice: pvpPrice, // Always store both prices
-        pvePrice: pvePrice, // Always store both prices
-        bundledItem: bundledItemData
+        gameMode: 'pvp' as GameMode, // Default, will be updated by hook
+        pvpPrice: pvpPrice,
+        pvePrice: pvePrice,
+        bundledItem: bundledItemData,
+        questOrder: questItem.questOrder
       }
     })
-
-    // Collect all required item IDs for price fetching
+    
+    // Step 7: Collect all required item IDs for price caching
     const requiredItemIds = new Set<string>()
     mappedPrices.forEach(item => {
       item.crafts.forEach(craft => {
@@ -130,25 +562,27 @@ export async function GET(_request: NextRequest) {
       item.barters.forEach(barter => {
         barter.requiredItems.forEach(req => requiredItemIds.add(req.item.id))
       })
-      // Add bundled item barter requirements
       if (item.bundledItem) {
         item.bundledItem.barters.forEach(barter => {
           barter.requiredItems.forEach(req => requiredItemIds.add(req.item.id))
         })
       }
     })
-
-    // Fetch prices for all required items for BOTH game modes simultaneously
+    
+    // Step 8: Fetch prices for all required items for both game modes
     const [pvpPriceCacheData, pvePriceCacheData, pvpRequiredData, pveRequiredData] = await Promise.all([
       fetchItemPrices(Array.from(requiredItemIds), 'pvp'),
       fetchItemPrices(Array.from(requiredItemIds), 'pve'),
       fetchRequiredItemsData(Array.from(requiredItemIds), 'pvp'),
       fetchRequiredItemsData(Array.from(requiredItemIds), 'pve')
     ])
-
+    
     const totalTime = performance.now() - startTime
-
-    // Return the complete data structure
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Dynamic quest analysis completed in ${totalTime.toFixed(2)}ms`)
+    }
+    
+    // Return the same data structure as before for UI compatibility
     const responseData = {
       mappedPrices,
       pvpPriceCache: Object.fromEntries(pvpPriceCacheData),
@@ -156,25 +590,41 @@ export async function GET(_request: NextRequest) {
       pvpRequiredItemsData: Object.fromEntries(pvpRequiredData),
       pveRequiredItemsData: Object.fromEntries(pveRequiredData),
       totalTime,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      questDataSource: 'dynamic', // Indicate this is from dynamic quest fetching
+      questsAnalyzed: questData.length,
+      itemsProcessed: mappedPrices.length
     }
-
-    // Create response with aggressive CDN caching
+    
+    // Smart caching strategy for Vercel Edge Cache
+    const cacheControl = gameMode === 'pve' 
+      ? 'public, s-maxage=300, stale-while-revalidate=900' // 5min cache, 15min stale for PvE
+      : 'public, s-maxage=300, stale-while-revalidate=600' // 5min cache, 10min stale for PvP
+    
     return NextResponse.json(responseData, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600', // 5min cache, 10min stale
-        'CDN-Cache-Control': 'public, s-maxage=300',
-        'Vercel-CDN-Cache-Control': 'public, s-maxage=300',
+        'Cache-Control': cacheControl,
+        'CDN-Cache-Control': `public, s-maxage=300`,
+        'Vercel-CDN-Cache-Control': `public, s-maxage=300`,
+        'X-Quest-Analysis': 'dynamic',
+        'X-Processing-Time': `${totalTime.toFixed(2)}ms`
       }
     })
-
+    
   } catch (error) {
+    console.error('Dynamic quest analysis failed:', error)
+    
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
+      { 
+        error: error instanceof Error ? error.message : 'Quest analysis failed',
+        questDataSource: 'failed',
+        timestamp: Date.now()
+      },
       { 
         status: 500,
         headers: {
-          'Cache-Control': 'no-cache' // Don't cache errors
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'X-Quest-Analysis': 'failed'
         }
       }
     )

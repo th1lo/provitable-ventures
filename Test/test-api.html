@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarkov Quest API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .loading { color: #666; }
+        .error { color: red; }
+        .item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .quest-info { background: #f0f8ff; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .api-info { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { color: green; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Tarkov Quest API Test</h1>
+    
+    <div>
+        <button onclick="testQuestAPI()">Test Quest Data API</button>
+        <button onclick="testOurAPI()">Test Our API</button>
+        </div>
+
+    <div id="loading" class="loading" style="display: none;">Loading...</div>
+    <div id="error" class="error" style="display: none;"></div>
+    
+    <div id="api-info" class="api-info" style="display: none;">
+        <h3>API Information</h3>
+        <div id="quest-source"></div>
+        <div id="total-time"></div>
+        <div id="item-count"></div>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        const QUEST_DATA_QUERY = `
+          query GetQuestData {
+            tasks {
+              id
+              name
+              trader {
+                    id
+                    name
+              }
+              objectives {
+                id
+                description
+                type
+                ... on TaskObjectiveItem {
+                  item {
+                    id
+                    name
+                    shortName
+                  }
+                  count
+                  foundInRaid
+                }
+              }
+            }
+          }
+        `;
+
+        async function testQuestAPI() {
+            const resultsDiv = document.getElementById('results');
+            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+
+            loadingDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('https://api.tarkov.dev/graphql', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: QUEST_DATA_QUERY
+                    })
+                });
+
+                const data = await response.json();
+                loadingDiv.style.display = 'none';
+                
+                if (data.errors) {
+                    errorDiv.textContent = 'GraphQL Errors: ' + JSON.stringify(data.errors);
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                const quests = data.data.tasks;
+                console.log('All quests:', quests);
+
+                // Filter for our target quests
+                const targetQuests = ['Profitable Venture', 'Safety Guarantee', 'Never Too Late To Learn', 'Get a Foothold', 'Profit Retention', 'A Life Lesson'];
+                const foundQuests = quests.filter(quest => targetQuests.includes(quest.name));
+
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        <h3>Quest API Test Results</h3>
+                        <p><strong>Total quests found:</strong> ${quests.length}</p>
+                        <p><strong>Target quests found:</strong> ${foundQuests.length}</p>
+                                </div>
+                `;
+
+                foundQuests.forEach(quest => {
+                    const questDiv = document.createElement('div');
+                    questDiv.className = 'quest-info';
+                    
+                    const giveItemObjectives = quest.objectives.filter(obj => obj.type === 'giveItem');
+                    
+                    questDiv.innerHTML = `
+                        <h4>${quest.name}</h4>
+                        <p><strong>Trader:</strong> ${quest.trader.name}</p>
+                        <p><strong>Total objectives:</strong> ${quest.objectives.length}</p>
+                        <p><strong>Give item objectives:</strong> ${giveItemObjectives.length}</p>
+                        
+                        ${giveItemObjectives.length > 0 ? `
+                            <h5>Required Items:</h5>
+                            ${giveItemObjectives.map(obj => `
+                                <div class="item">
+                                    <strong>${obj.item ? obj.item.name : 'Unknown Item'}</strong><br>
+                                    Quantity: ${obj.count || 'Unknown'}<br>
+                                    Found in Raid: ${obj.foundInRaid ? 'Yes' : 'No'}
+                                </div>
+                            `).join('')}
+                        ` : '<p>No give item objectives found</p>'}
+                    `;
+                    
+                    resultsDiv.appendChild(questDiv);
+                });
+
+                if (foundQuests.length === 0) {
+                    resultsDiv.innerHTML += '<div class="error">No target quests found! Quest names might have changed.</div>';
+                }
+
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = 'Fetch Error: ' + error.message;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        async function testOurAPI() {
+            const resultsDiv = document.getElementById('results');
+            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const apiInfo = document.getElementById('api-info');
+            
+            loadingDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/tarkov-data?gameMode=pvp');
+                const data = await response.json();
+                
+                loadingDiv.style.display = 'none';
+                
+                if (data.error) {
+                    errorDiv.textContent = data.error;
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                
+                // Show API information
+                apiInfo.style.display = 'block';
+                document.getElementById('quest-source').innerHTML = `<strong>Quest Data Source:</strong> ${data.questDataSource || 'unknown'}`;
+                document.getElementById('total-time').innerHTML = `<strong>Total Time:</strong> ${data.totalTime?.toFixed(2)}ms`;
+                document.getElementById('item-count').innerHTML = `<strong>Items Found:</strong> ${data.mappedPrices?.length || 0}`;
+                
+                if (data.mappedPrices && data.mappedPrices.length > 0) {
+                    // Group by quest
+                    const quests = {};
+                    data.mappedPrices.forEach(item => {
+                        if (!quests[item.category]) {
+                            quests[item.category] = [];
+                        }
+                        quests[item.category].push(item);
+                    });
+                    
+                    // Sort quests by questOrder
+                    const sortedQuests = Object.entries(quests).sort((a, b) => {
+                        const orderA = a[1][0]?.questOrder || 999;
+                        const orderB = b[1][0]?.questOrder || 999;
+                        return orderA - orderB;
+                    });
+                    
+                    sortedQuests.forEach(([questName, items]) => {
+                        const questDiv = document.createElement('div');
+                        questDiv.className = 'quest-info';
+                        questDiv.innerHTML = `
+                            <h3>${questName} (Order: ${items[0]?.questOrder || 'N/A'})</h3>
+                            <p><strong>Items needed:</strong> ${items.length}</p>
+                        `;
+                        resultsDiv.appendChild(questDiv);
+                        
+                        items.forEach(item => {
+                            const itemDiv = document.createElement('div');
+                            itemDiv.className = 'item';
+                            itemDiv.innerHTML = `
+                                <strong>${item.name}</strong><br>
+                                Quantity: ${item.quantity}<br>
+                                PvP Price: ₽${item.pvpPrice?.toLocaleString() || 'N/A'}<br>
+                                PvE Price: ₽${item.pvePrice?.toLocaleString() || 'N/A'}<br>
+                                Total Value: ₽${((item.pvpPrice || 0) * item.quantity).toLocaleString()}
+                            `;
+                            resultsDiv.appendChild(itemDiv);
+                        });
+                    });
+                } else {
+                    resultsDiv.innerHTML = '<p>No items found</p>';
+                }
+                
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = 'Failed to fetch data: ' + error.message;
+                errorDiv.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html> 

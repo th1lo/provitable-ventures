@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profitable Venture Quest Analysis - Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .container {
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .loading { color: #ffa500; font-weight: bold; }
+        .success { color: #4CAF50; font-weight: bold; }
+        .error { color: #f44336; font-weight: bold; }
+        .item-card {
+            background-color: #3d3d3d;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .raw-data {
+            background-color: #1d1d1d;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #666; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Profitable Venture Quest Analysis - Test Environment</h1>
+    
+    <div class="container">
+        <h2>Test Configuration</h2>
+        <p><strong>Quest ID:</strong> 67af4c1405c58dc6f7056667</p>
+        <p><strong>Expected Item:</strong> Trijicon REAP-IR thermal imaging riflescope (15x)</p>
+        <button onclick="runTest()" id="testBtn">Run Complete Test</button>
+        <button onclick="clearResults()" id="clearBtn">Clear Results</button>
+    </div>
+
+    <div class="container">
+        <h2>Test Progress</h2>
+        <div id="progressLog"></div>
+    </div>
+
+    <div class="container">
+        <h2>Results Summary</h2>
+        <div id="resultsSummary">No results yet...</div>
+    </div>
+
+    <div class="container">
+        <h2>Raw API Responses</h2>
+        <div id="rawData">No data yet...</div>
+    </div>
+
+    <script>
+        const QUEST_ID = '67af4c1405c58dc6f7056667';
+        const API_URL = 'https://api.tarkov.dev/graphql';
+        
+        let testData = {
+            steps: [],
+            questData: null,
+            itemDetails: [],
+            barters: [],
+            crafts: [],
+            traderWeapons: []
+        };
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            testData.steps.push({ timestamp, message, type });
+            
+            const progressLog = document.getElementById('progressLog');
+            const color = type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#ffa500';
+            progressLog.innerHTML += `<div style="color: ${color}; margin: 5px 0;">${logEntry}</div>`;
+            progressLog.scrollTop = progressLog.scrollHeight;
+            
+            console.log(logEntry);
+        }
+
+        async function graphqlQuery(query, variables = {}) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, variables })
+                });
+                
+                const data = await response.json();
+                if (data.errors) {
+                    throw new Error(data.errors.map(e => e.message).join(', '));
+                }
+                
+                return data.data;
+            } catch (error) {
+                log(`GraphQL Error: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        function isFleaMarketRestricted(item) {
+            // Check if item has flea market in sellFor
+            const fleaSell = item.sellFor?.find(sell => 
+                sell.vendor?.normalizedName === 'flea-market' || 
+                sell.source === 'fleaMarket'
+            );
+            return !fleaSell;
+        }
+
+        async function runTest() {
+            try {
+                document.getElementById('testBtn').disabled = true;
+                document.getElementById('progressLog').innerHTML = '';
+                
+                log('🚀 Starting Profitable Venture Quest Analysis Test', 'info');
+                log('This test demonstrates the complete workflow for quest item analysis', 'info');
+                
+                // Step 1: Get quest data
+                log('🔍 Step 1: Fetching quest data...', 'info');
+                const questQuery = `
+                    query GetQuestData($id: ID!) {
+                        task(id: $id) {
+                            id
+                            name
+                            wikiLink
+                            trader { id name }
+                            objectives {
+                                id
+                                description
+                                type
+                                ... on TaskObjectiveItem {
+                                    item { id name shortName }
+                                    count
+                                    foundInRaid
+                                }
+                            }
+                        }
+                    }
+                `;
+                
+                const questData = await graphqlQuery(questQuery, { id: QUEST_ID });
+                testData.questData = questData.task;
+                log(`✅ Quest found: "${questData.task.name}" from ${questData.task.trader.name}`, 'success');
+                
+                const requiredItems = questData.task.objectives
+                    .filter(obj => obj.type === 'giveItem' && obj.item)
+                    .map(obj => ({
+                        id: obj.item.id,
+                        name: obj.item.name,
+                        shortName: obj.item.shortName,
+                        count: obj.count,
+                        foundInRaid: obj.foundInRaid
+                    }));
+                
+                log(`📋 Required items: ${requiredItems.length}`, 'info');
+                requiredItems.forEach(item => {
+                    log(`   • ${item.count}x ${item.name} ${item.foundInRaid ? '(FiR)' : ''}`, 'info');
+                });
+                
+                // Step 2: Get item details with barters and crafts
+                log('📦 Step 2: Fetching detailed item information...', 'info');
+                                 const itemQuery = `
+                     query GetItemDetails($ids: [ID!]!) {
+                         items(ids: $ids) {
+                             id name shortName iconLink wikiLink
+                             avg24hPrice lastLowPrice changeLast48h changeLast48hPercent
+                             fleaMarketFee
+                             categories { id name normalizedName }
+                             sellFor {
+                                 source
+                                 price
+                                 currency
+                                 priceRUB
+                                 vendor {
+                                     name
+                                     normalizedName
+                                     ... on TraderOffer {
+                                         minTraderLevel
+                                         buyLimit
+                                     }
+                                     ... on FleaMarket {
+                                         foundInRaidRequired
+                                     }
+                                 }
+                             }
+                             bartersFor {
+                                 id trader { id name } level
+                                 requiredItems { 
+                                     item { 
+                                         id name shortName iconLink 
+                                         avg24hPrice lastLowPrice changeLast48hPercent
+                                     } 
+                                     count 
+                                 }
+                                 rewardItems { item { id name } count }
+                                 taskUnlock { id name }
+                             }
+                             craftsFor {
+                                 id station { id name } level duration
+                                 requiredItems { 
+                                     item { 
+                                         id name shortName iconLink 
+                                         avg24hPrice lastLowPrice changeLast48hPercent
+                                     } 
+                                     count 
+                                 }
+                                 rewardItems { item { id name } count }
+                             }
+                         }
+                     }
+                 `;
+                
+                const itemData = await graphqlQuery(itemQuery, { ids: requiredItems.map(i => i.id) });
+                testData.itemDetails = itemData.items;
+                
+                                 itemData.items.forEach(item => {
+                     const price = item.avg24hPrice || item.lastLowPrice || 0;
+                     const change = item.changeLast48hPercent || 0;
+                     const fleaRestricted = isFleaMarketRestricted(item);
+                     
+                     log(`💰 ${item.name}: ₽${price.toLocaleString()} (${change >= 0 ? '+' : ''}${change.toFixed(1)}%) ${fleaRestricted ? '🚫 FLEA RESTRICTED' : '✅ Flea OK'}`, fleaRestricted ? 'warning' : 'info');
+                     log(`   Categories: ${item.categories.map(c => c.name).join(', ')}`, 'info');
+                     log(`   Barters: ${item.bartersFor.length}, Crafts: ${item.craftsFor.length}`, 'info');
+                     
+                     // Log detailed barter/craft requirements
+                     if (item.bartersFor.length > 0) {
+                         log(`   📋 Barter Details:`, 'info');
+                         item.bartersFor.forEach(barter => {
+                             const reqItems = barter.requiredItems.map(req => {
+                                 const reqPrice = req.item.avg24hPrice || req.item.lastLowPrice || 0;
+                                 const reqChange = req.item.changeLast48hPercent || 0;
+                                 return `${req.count}x ${req.item.name} (₽${reqPrice.toLocaleString()}, ${reqChange >= 0 ? '+' : ''}${reqChange.toFixed(1)}%)`;
+                             }).join(', ');
+                             log(`      • ${barter.trader.name} L${barter.level}: ${reqItems}${barter.taskUnlock ? ` [Quest: ${barter.taskUnlock.name}]` : ''}`, 'info');
+                         });
+                     }
+                     
+                     if (item.craftsFor.length > 0) {
+                         log(`   🔨 Craft Details:`, 'info');
+                         item.craftsFor.forEach(craft => {
+                             const reqItems = craft.requiredItems.map(req => {
+                                 const reqPrice = req.item.avg24hPrice || req.item.lastLowPrice || 0;
+                                 const reqChange = req.item.changeLast48hPercent || 0;
+                                 return `${req.count}x ${req.item.name} (₽${reqPrice.toLocaleString()}, ${reqChange >= 0 ? '+' : ''}${reqChange.toFixed(1)}%)`;
+                             }).join(', ');
+                             const duration = `${Math.floor(craft.duration / 3600)}h ${Math.floor((craft.duration % 3600) / 60)}m`;
+                             log(`      • ${craft.station.name} L${craft.level} [${duration}]: ${reqItems}`, 'info');
+                         });
+                     }
+                 });
+                
+                                 // Step 3: Scan trader items for weapons/containers containing required quest items
+                 log('🔫 Step 3: Scanning trader items for weapons/containers containing required quest items...', 'info');
+                 log(`🎯 Looking for items containing: ${requiredItems.map(item => item.name).join(', ')}`, 'info');
+                 
+                 // Use the working approach: Query all traders for weapons containing required parts
+                 const weaponQuery = `
+                     query GetTradersWithWeapons {
+                         traders {
+                             id name normalizedName
+                             cashOffers {
+                                 item {
+                                     id name shortName iconLink
+                                     categories { id name normalizedName }
+                                     containsItems {
+                                         item { id name shortName iconLink }
+                                         count
+                                     }
+                                 }
+                                 price priceRUB currency
+                                 minTraderLevel buyLimit
+                             }
+                             barters {
+                                 id level
+                                 rewardItems {
+                                     item {
+                                         id name shortName iconLink
+                                         categories { id name normalizedName }
+                                         containsItems {
+                                             item { id name shortName iconLink }
+                                             count
+                                         }
+                                     }
+                                     count
+                                 }
+                                 requiredItems {
+                                     item { 
+                                         id name shortName iconLink
+                                         avg24hPrice lastLowPrice changeLast48hPercent
+                                     }
+                                     count
+                                 }
+                             }
+                         }
+                     }
+                 `;
+                 
+                 try {
+                         const weaponData = await graphqlQuery(weaponQuery);
+                         const filteredTraders = weaponData.traders.filter(trader => 
+                             trader.normalizedName !== 'fence'
+                         );
+                         
+                         const weaponsWithParts = [];
+                         let totalItemsScanned = 0;
+                         
+                         // Get all required item IDs from the quest
+                         const requiredItemIds = requiredItems.map(item => item.id);
+                         
+                         filteredTraders.forEach(trader => {
+                             // Check cash offers
+                             trader.cashOffers.forEach(offer => {
+                                 totalItemsScanned++;
+                                 if (offer.item.containsItems && offer.item.containsItems.length > 0) {
+                                     const containsRequiredParts = offer.item.containsItems.filter(contained => 
+                                         requiredItemIds.includes(contained.item.id)
+                                     );
+                                     
+                                     if (containsRequiredParts.length > 0) {
+                                         weaponsWithParts.push({
+                                             type: 'cash',
+                                             trader: trader.name,
+                                             traderLevel: offer.minTraderLevel,
+                                             weapon: offer.item,
+                                             price: `$${offer.price} (₽${offer.priceRUB})`,
+                                             containedParts: containsRequiredParts,
+                                             buyLimit: offer.buyLimit
+                                         });
+                                     }
+                                 }
+                             });
+                             
+                             // Check barters
+                             trader.barters.forEach(barter => {
+                                 barter.rewardItems.forEach(rewardItem => {
+                                     totalItemsScanned++;
+                                     if (rewardItem.item.containsItems && rewardItem.item.containsItems.length > 0) {
+                                         const containsRequiredParts = rewardItem.item.containsItems.filter(contained => 
+                                             requiredItemIds.includes(contained.item.id)
+                                         );
+                                         
+                                         if (containsRequiredParts.length > 0) {
+                                             const barterCost = barter.requiredItems.reduce((sum, req) => {
+                                                 const price = req.item.avg24hPrice || 0;
+                                                 return sum + (price * req.count);
+                                             }, 0);
+                                             
+                                             weaponsWithParts.push({
+                                                 type: 'barter',
+                                                 trader: trader.name,
+                                                 traderLevel: barter.level,
+                                                 weapon: rewardItem.item,
+                                                 price: barter.requiredItems.map(req => `${req.count}x ${req.item.name}`).join(', '),
+                                                 containedParts: containsRequiredParts,
+                                                 barterCost,
+                                                 barter: barter
+                                             });
+                                         }
+                                     }
+                                 });
+                             });
+                         });
+                         
+                         log(`🔍 Scanned ${totalItemsScanned} items from ${filteredTraders.length} traders`, 'info');
+                         log(`✅ Found ${weaponsWithParts.length} items containing required quest parts`, 'success');
+                         
+                         weaponsWithParts.forEach(weapon => {
+                             const containedPartsText = weapon.containedParts.map(p => `${p.count}x ${p.item.name}`).join(', ');
+                             const costText = weapon.type === 'cash' ? weapon.price : `₽${weapon.barterCost.toLocaleString()} (${weapon.price})`;
+                             log(`   • ${weapon.weapon.name} (${weapon.trader} L${weapon.traderLevel}) - Contains: ${containedPartsText} - ${weapon.type.toUpperCase()}: ${costText}`, 'success');
+                             
+                             // Debug: Log barter requirements if it's a barter
+                             if (weapon.type === 'barter' && weapon.barter && weapon.barter.requiredItems) {
+                                 log(`     Barter requirements: ${weapon.barter.requiredItems.map(req => `${req.count}x ${req.item.name} (₽${req.item.avg24hPrice || 0})`).join(', ')}`, 'info');
+                             }
+                         });
+                         
+                         testData.traderWeapons = weaponsWithParts;
+                     } catch (error) {
+                         log(`⚠️ Trader weapon scan failed: ${error.message}`, 'warning');
+                     }
+                
+                // Step 4: Analyze acquisition methods
+                log('📊 Step 4: Analyzing acquisition methods...', 'info');
+                
+                const barters = [];
+                const crafts = [];
+                
+                itemData.items.forEach(item => {
+                    // Process barters
+                    item.bartersFor.forEach(barter => {
+                        let totalCost = 0;
+                        let hasMissingPrices = false;
+                        
+                        const requiredItemDetails = barter.requiredItems.map(req => {
+                            const price = req.item.avg24hPrice || req.item.lastLowPrice || 0;
+                            if (price === 0) hasMissingPrices = true;
+                            totalCost += price * req.count;
+                            return {
+                                ...req,
+                                price: price,
+                                totalCost: price * req.count
+                            };
+                        });
+                        
+                        const rewardCount = barter.rewardItems.find(r => r.item.id === item.id)?.count || 1;
+                        barters.push({
+                            item: item.name,
+                            trader: barter.trader.name,
+                            level: barter.level,
+                            costPerItem: hasMissingPrices ? Infinity : totalCost / rewardCount,
+                            taskUnlock: barter.taskUnlock,
+                            requiredItemDetails: requiredItemDetails,
+                            hasMissingPrices: hasMissingPrices
+                        });
+                    });
+                    
+                    // Process crafts
+                    item.craftsFor.forEach(craft => {
+                        let totalCost = 0;
+                        let hasMissingPrices = false;
+                        
+                        const requiredItemDetails = craft.requiredItems.map(req => {
+                            const price = req.item.avg24hPrice || req.item.lastLowPrice || 0;
+                            if (price === 0) hasMissingPrices = true;
+                            totalCost += price * req.count;
+                            return {
+                                ...req,
+                                price: price,
+                                totalCost: price * req.count
+                            };
+                        });
+                        
+                        const rewardCount = craft.rewardItems.find(r => r.item.id === item.id)?.count || 1;
+                        crafts.push({
+                            item: item.name,
+                            station: craft.station.name,
+                            level: craft.level,
+                            duration: craft.duration,
+                            costPerItem: hasMissingPrices ? Infinity : totalCost / rewardCount,
+                            requiredItemDetails: requiredItemDetails,
+                            hasMissingPrices: hasMissingPrices
+                        });
+                    });
+                });
+                
+                testData.barters = barters.sort((a, b) => a.costPerItem - b.costPerItem);
+                testData.crafts = crafts.sort((a, b) => a.costPerItem - b.costPerItem);
+                
+                log(`💱 Found ${barters.length} barter options`, 'info');
+                log(`🔨 Found ${crafts.length} craft options`, 'info');
+                
+                // Calculate cheapest methods
+                itemData.items.forEach((item, index) => {
+                    const requiredItem = requiredItems[index];
+                    const fleaRestricted = isFleaMarketRestricted(item);
+                    const fleaPrice = item.avg24hPrice || item.lastLowPrice || 0;
+                    const totalFleaCost = fleaPrice * requiredItem.count;
+                    
+                    const itemBarters = barters.filter(b => b.item === item.name);
+                    const itemCrafts = crafts.filter(c => c.item === item.name);
+                    
+                    let cheapestMethod = '';
+                    let cheapestCost = Infinity;
+                    
+                    // Only consider flea market if not restricted and has a price
+                    if (!fleaRestricted && fleaPrice > 0) {
+                        cheapestMethod = 'Flea Market';
+                        cheapestCost = totalFleaCost;
+                    }
+                    
+                    // Check barters
+                    if (itemBarters.length > 0) {
+                        const barterCost = itemBarters[0].costPerItem * requiredItem.count;
+                        if (barterCost < cheapestCost) {
+                            cheapestMethod = `Barter (${itemBarters[0].trader})`;
+                            cheapestCost = barterCost;
+                        }
+                    }
+                    
+                    // Check crafts
+                    if (itemCrafts.length > 0) {
+                        const craftCost = itemCrafts[0].costPerItem * requiredItem.count;
+                        if (craftCost < cheapestCost) {
+                            cheapestMethod = `Craft (${itemCrafts[0].station})`;
+                            cheapestCost = craftCost;
+                        }
+                    }
+                    
+                    if (cheapestMethod === '') {
+                        log(`💰 ${item.name} - No acquisition method available or all methods have missing price data`, 'warning');
+                    } else {
+                        log(`💰 ${item.name} - Cheapest: ${cheapestMethod} (₽${cheapestCost.toLocaleString()})`, 'success');
+                    }
+                });
+                
+                log('✅ Test completed successfully!', 'success');
+                displayResults();
+                
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`, 'error');
+                console.error('Test error:', error);
+            } finally {
+                document.getElementById('testBtn').disabled = false;
+            }
+        }
+
+        function displayResults() {
+            const summary = document.getElementById('resultsSummary');
+            const rawDataDiv = document.getElementById('rawData');
+            
+            let summaryHTML = '<h3>Analysis Summary</h3>';
+            
+            if (testData.questData) {
+                summaryHTML += `<div class="item-card">
+                    <h4>Quest: ${testData.questData.name}</h4>
+                    <p>Trader: ${testData.questData.trader.name}</p>
+                    <p>Wiki: <a href="${testData.questData.wikiLink}" target="_blank">Link</a></p>
+                </div>`;
+            }
+            
+                         if (testData.itemDetails.length > 0) {
+                 summaryHTML += '<h4>Required Items:</h4>';
+                 testData.itemDetails.forEach(item => {
+                     const price = item.avg24hPrice || item.lastLowPrice || 0;
+                     const change = item.changeLast48hPercent || 0;
+                     const fleaRestricted = isFleaMarketRestricted(item);
+                     
+                     summaryHTML += `<div class="item-card" style="border-left-color: ${fleaRestricted ? '#f44336' : '#2196F3'}">
+                         <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                             <img src="${item.iconLink}" alt="${item.name}" style="width: 48px; height: 48px; margin-right: 10px; background-color: #4d4d4d; border-radius: 4px;" onerror="this.style.display='none'">
+                             <div>
+                                 <strong>${item.name}</strong> (${item.shortName})<br>
+                                 <small>Categories: ${item.categories.map(c => c.name).join(', ')}</small>
+                             </div>
+                         </div>
+                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                             <div>
+                                 <strong>Flea Market:</strong><br>
+                                 ${fleaRestricted ? '🚫 RESTRICTED' : `₽${price.toLocaleString()}`}<br>
+                                 ${!fleaRestricted ? `<small style="color: ${change >= 0 ? '#4CAF50' : '#f44336'}">${change >= 0 ? '+' : ''}${change.toFixed(1)}% (48h)</small>` : ''}
+                             </div>
+                             <div>
+                                 <strong>Acquisition:</strong><br>
+                                 Barters: ${item.bartersFor.length}<br>
+                                 Crafts: ${item.craftsFor.length}
+                             </div>
+                         </div>
+                     </div>`;
+                 });
+             }
+            
+            if (testData.barters.length > 0) {
+                summaryHTML += '<h4>Best Barters:</h4>';
+                testData.barters.slice(0, 3).forEach(barter => {
+                    const costDisplay = barter.hasMissingPrices ? 'Unknown (missing prices)' : `₽${barter.costPerItem.toLocaleString()}`;
+                    
+                    summaryHTML += `<div class="item-card">
+                        <strong>${barter.item}</strong> - ${barter.trader} (Level ${barter.level})<br>
+                        Cost per item: ${costDisplay}<br>
+                        ${barter.taskUnlock ? `Requires: ${barter.taskUnlock.name}` : 'No quest requirement'}<br><br>
+                        <strong>Required Items:</strong><br>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 5px;">
+                    `;
+                    
+                    barter.requiredItemDetails.forEach(req => {
+                        const priceDisplay = req.price > 0 ? `₽${req.price.toLocaleString()}` : 'No price data';
+                        const totalDisplay = req.totalCost > 0 ? `₽${req.totalCost.toLocaleString()}` : 'Unknown';
+                        const change = req.item.changeLast48hPercent || 0;
+                        const changeColor = change >= 0 ? '#4CAF50' : '#f44336';
+                        
+                        summaryHTML += `
+                            <div style="background-color: #2d2d2d; padding: 8px; border-radius: 4px; display: flex; align-items: center;">
+                                <img src="${req.item.iconLink}" alt="${req.item.name}" style="width: 32px; height: 32px; margin-right: 8px; background-color: #4d4d4d; border-radius: 2px;" onerror="this.style.display='none'">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold; font-size: 12px;">${req.count}x ${req.item.shortName}</div>
+                                    <div style="font-size: 11px; color: #bbb;">${priceDisplay} each</div>
+                                    <div style="font-size: 11px; color: ${changeColor};">${change >= 0 ? '+' : ''}${change.toFixed(1)}% (48h)</div>
+                                    <div style="font-size: 11px; color: #fff; font-weight: bold;">Total: ${totalDisplay}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    summaryHTML += `</div></div>`;
+                });
+            }
+            
+            if (testData.crafts.length > 0) {
+                summaryHTML += '<h4>Best Crafts:</h4>';
+                testData.crafts.slice(0, 3).forEach(craft => {
+                    const duration = `${Math.floor(craft.duration / 3600)}h ${Math.floor((craft.duration % 3600) / 60)}m`;
+                    const costDisplay = craft.hasMissingPrices ? 'Unknown (missing prices)' : `₽${craft.costPerItem.toLocaleString()}`;
+                    
+                    summaryHTML += `<div class="item-card">
+                        <strong>${craft.item}</strong> - ${craft.station} (Level ${craft.level})<br>
+                        Cost per item: ${costDisplay}<br>
+                        Duration: ${duration}<br><br>
+                        <strong>Required Items:</strong><br>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 5px;">
+                    `;
+                    
+                    craft.requiredItemDetails.forEach(req => {
+                        const priceDisplay = req.price > 0 ? `₽${req.price.toLocaleString()}` : 'No price data';
+                        const totalDisplay = req.totalCost > 0 ? `₽${req.totalCost.toLocaleString()}` : 'Unknown';
+                        const change = req.item.changeLast48hPercent || 0;
+                        const changeColor = change >= 0 ? '#4CAF50' : '#f44336';
+                        
+                        summaryHTML += `
+                            <div style="background-color: #2d2d2d; padding: 8px; border-radius: 4px; display: flex; align-items: center;">
+                                <img src="${req.item.iconLink}" alt="${req.item.name}" style="width: 32px; height: 32px; margin-right: 8px; background-color: #4d4d4d; border-radius: 2px;" onerror="this.style.display='none'">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold; font-size: 12px;">${req.count}x ${req.item.shortName}</div>
+                                    <div style="font-size: 11px; color: #bbb;">${priceDisplay} each</div>
+                                    <div style="font-size: 11px; color: ${changeColor};">${change >= 0 ? '+' : ''}${change.toFixed(1)}% (48h)</div>
+                                    <div style="font-size: 11px; color: #fff; font-weight: bold;">Total: ${totalDisplay}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    summaryHTML += `</div></div>`;
+                });
+            }
+            
+                         if (testData.traderWeapons && testData.traderWeapons.length > 0) {
+                 summaryHTML += '<h4>Trader Weapons with Required Parts:</h4>';
+                 testData.traderWeapons.forEach(weapon => {
+                     const costDisplay = weapon.type === 'cash' ? weapon.price : 
+                         (weapon.barterCost ? `₽${weapon.barterCost.toLocaleString()}` : 'Unknown cost');
+                     
+                     summaryHTML += `<div class="item-card">
+                         <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                             <img src="${weapon.weapon.iconLink}" alt="${weapon.weapon.name}" style="width: 48px; height: 48px; margin-right: 10px; background-color: #4d4d4d; border-radius: 4px;" onerror="this.style.display='none'">
+                             <div>
+                                 <strong>${weapon.weapon.name}</strong><br>
+                                 <small>${weapon.trader} (Level ${weapon.traderLevel}) - ${costDisplay}</small>
+                             </div>
+                         </div>
+                         <div style="background-color: #2d2d2d; padding: 8px; border-radius: 4px; margin: 5px 0;">
+                             <strong>Contains:</strong> ${weapon.containedParts.map(p => `${p.count}x ${p.item.name}`).join(', ')}
+                         </div>
+                     `;
+                     
+                     if (weapon.type === 'cash') {
+                         summaryHTML += `
+                             <div style="background-color: #1a4d1a; padding: 8px; border-radius: 4px; margin: 5px 0;">
+                                 <strong>💰 Cash Purchase:</strong> ${weapon.price}
+                                 ${weapon.buyLimit ? `<br><small>Buy Limit: ${weapon.buyLimit}</small>` : ''}
+                             </div>
+                         `;
+                     } else if (weapon.type === 'barter') {
+                         // Debug info
+                         console.log('Barter weapon:', weapon);
+                         
+                         summaryHTML += `
+                             <div style="background-color: #4d2a1a; padding: 8px; border-radius: 4px; margin: 5px 0;">
+                                 <strong>🔄 Barter Requirements:</strong><br>
+                         `;
+                         
+                         if (weapon.barter && weapon.barter.requiredItems && weapon.barter.requiredItems.length > 0) {
+                             summaryHTML += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 8px;">`;
+                             
+                             weapon.barter.requiredItems.forEach(req => {
+                                 const price = req.item.avg24hPrice || req.item.lastLowPrice || 0;
+                                 const priceDisplay = price > 0 ? `₽${price.toLocaleString()}` : 'No price data';
+                                 const totalCost = price * req.count;
+                                 const totalDisplay = totalCost > 0 ? `₽${totalCost.toLocaleString()}` : 'Unknown';
+                                 const change = req.item.changeLast48hPercent || 0;
+                                 const changeColor = change >= 0 ? '#4CAF50' : '#f44336';
+                                 
+                                 summaryHTML += `
+                                     <div style="background-color: #2d2d2d; padding: 6px; border-radius: 4px; display: flex; align-items: center;">
+                                         <img src="${req.item.iconLink || ''}" alt="${req.item.name}" style="width: 24px; height: 24px; margin-right: 6px; background-color: #4d4d4d; border-radius: 2px;" onerror="this.style.display='none'">
+                                         <div style="flex: 1;">
+                                             <div style="font-weight: bold; font-size: 11px;">${req.count}x ${req.item.shortName}</div>
+                                             <div style="font-size: 10px; color: #bbb;">${priceDisplay} each</div>
+                                             <div style="font-size: 10px; color: ${changeColor};">${change >= 0 ? '+' : ''}${change.toFixed(1)}% (48h)</div>
+                                             <div style="font-size: 10px; color: #fff; font-weight: bold;">Total: ${totalDisplay}</div>
+                                         </div>
+                                     </div>
+                                 `;
+                             });
+                             
+                             summaryHTML += `</div>`;
+                         } else {
+                             summaryHTML += `<div style="color: #bbb; margin-top: 5px;">No detailed barter requirements available</div>`;
+                         }
+                         
+                         summaryHTML += `</div>`;
+                     }
+                     
+                     summaryHTML += `</div>`;
+                 });
+             }
+
+             summary.innerHTML = summaryHTML;
+             rawDataDiv.innerHTML = `<div class="raw-data"><pre>${JSON.stringify(testData, null, 2)}</pre></div>`;
+        }
+
+        function clearResults() {
+            testData = { steps: [], questData: null, itemDetails: [], barters: [], crafts: [], traderWeapons: [] };
+            document.getElementById('progressLog').innerHTML = '';
+            document.getElementById('resultsSummary').innerHTML = 'No results yet...';
+            document.getElementById('rawData').innerHTML = 'No data yet...';
+        }
+    </script>
+</body>
+</html> 

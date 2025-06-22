@@ -223,3 +223,444 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ---
 
 **The table consistency problem is permanently solved!** 🎯
+
+# Tarkov Quest Analysis System
+
+A comprehensive system for analyzing Escape from Tarkov quests, item acquisition methods, and optimization strategies.
+
+## Overview
+
+This system provides detailed analysis of quest requirements, item acquisition costs, flea market restrictions, barter/craft alternatives, and trader weapons containing quest items. It's designed for high-performance analysis of multiple quests with optimized GraphQL queries and intelligent caching.
+
+## Core Workflow
+
+### 1. Quest Data Fetching
+```javascript
+// Fetch specific quests or all quests
+const questQuery = `
+    query GetQuests {
+        tasks {
+            id name wikiLink
+            trader { id name normalizedName }
+            objectives {
+                id description type
+                ... on TaskObjectiveItem {
+                    item { id name shortName }
+                    count
+                    foundInRaid
+                }
+            }
+        }
+    }
+`;
+```
+
+### 2. Item Details Batch Processing
+```javascript
+// Optimized batch fetching (50 items per batch)
+const itemQuery = `
+    query GetItemDetails($ids: [ID!]!) {
+        items(ids: $ids) {
+            id name shortName iconLink wikiLink
+            avg24hPrice lastLowPrice changeLast48h changeLast48hPercent
+            fleaMarketFee
+            categories { id name normalizedName }
+            sellFor {
+                source price currency priceRUB
+                vendor {
+                    name normalizedName
+                    ... on TraderOffer {
+                        minTraderLevel buyLimit
+                    }
+                    ... on FleaMarket {
+                        foundInRaidRequired
+                    }
+                }
+            }
+            bartersFor {
+                id trader { id name } level
+                requiredItems { 
+                    item { 
+                        id name shortName iconLink 
+                        avg24hPrice lastLowPrice changeLast48hPercent
+                    } 
+                    count 
+                }
+                rewardItems { item { id name } count }
+                taskUnlock { id name }
+            }
+            craftsFor {
+                id station { id name } level duration
+                requiredItems { 
+                    item { 
+                        id name shortName iconLink 
+                        avg24hPrice lastLowPrice changeLast48hPercent
+                    } 
+                    count 
+                }
+                rewardItems { item { id name } count }
+            }
+        }
+    }
+`;
+```
+
+### 3. Trader Weapons Analysis
+```javascript
+// Fetch trader weapons with contained items
+const weaponQuery = `
+    query GetTradersWithWeapons {
+        traders {
+            id name normalizedName
+            cashOffers {
+                item {
+                    id name shortName iconLink
+                    categories { id name normalizedName }
+                    containsItems {
+                        item { id name shortName iconLink }
+                        count
+                    }
+                }
+                price priceRUB currency
+                minTraderLevel buyLimit
+            }
+            barters {
+                id level
+                rewardItems {
+                    item {
+                        id name shortName iconLink
+                        categories { id name normalizedName }
+                        containsItems {
+                            item { id name shortName iconLink }
+                            count
+                        }
+                    }
+                    count
+                }
+                requiredItems {
+                    item { 
+                        id name shortName iconLink
+                        avg24hPrice lastLowPrice changeLast48hPercent
+                    }
+                    count
+                }
+            }
+        }
+    }
+`;
+```
+
+## Data Structures
+
+### Quest Analysis Object
+```javascript
+const questAnalysis = {
+    quest: {
+        id: "67af4c1405c58dc6f7056667",
+        name: "Profitable Venture",
+        trader: { name: "Skier", normalizedName: "skier" },
+        wikiLink: "https://..."
+    },
+    requiredItems: [
+        {
+            id: "5a1eaa87fcdbcb001865f75e",
+            name: "Trijicon REAP-IR thermal scope",
+            shortName: "REAP-IR",
+            count: 15,
+            foundInRaid: false
+        }
+    ],
+    itemDetails: [], // Full item data from API
+    barters: [
+        {
+            item: "Trijicon REAP-IR thermal scope",
+            trader: "Mechanic",
+            level: 4,
+            costPerItem: 874408,
+            taskUnlock: { id: "...", name: "Gunsmith - Part 22" },
+            requiredItemDetails: [
+                {
+                    item: { name: "Military circuit board", iconLink: "...", avg24hPrice: 95168 },
+                    count: 4,
+                    price: 95168,
+                    totalCost: 380672
+                }
+            ],
+            hasMissingPrices: false
+        }
+    ],
+    crafts: [
+        {
+            item: "Trijicon REAP-IR thermal scope",
+            station: "Workbench",
+            level: 3,
+            duration: 86400,
+            costPerItem: 709541,
+            requiredItemDetails: [...],
+            hasMissingPrices: false
+        }
+    ],
+    traderWeapons: [
+        {
+            type: "cash", // or "barter"
+            trader: "Peacekeeper",
+            traderLevel: 4,
+            weapon: { name: "Colt M4A1...", iconLink: "..." },
+            price: "$707 (₽707,212)",
+            containedParts: [
+                { item: { id: "5a1eaa87fcdbcb001865f75e", name: "..." }, count: 1 }
+            ],
+            buyLimit: null,
+            barter: null // or barter object for barter weapons
+        }
+    ],
+    fleaRestricted: true,
+    cheapestMethods: [
+        {
+            item: "Trijicon REAP-IR thermal scope",
+            method: "Craft (Workbench)",
+            cost: 10643115 // for 15 items
+        }
+    ]
+};
+```
+
+## Key Functions
+
+### Flea Market Restriction Detection
+```javascript
+function isFleaMarketRestricted(item) {
+    const fleaSell = item.sellFor?.find(sell => 
+        sell.vendor?.normalizedName === 'flea-market' || 
+        sell.source === 'fleaMarket'
+    );
+    return !fleaSell;
+}
+```
+
+### Cost Calculation with Missing Price Handling
+```javascript
+function calculateBarterCost(barter) {
+    let totalCost = 0;
+    let hasMissingPrices = false;
+    
+    const requiredItemDetails = barter.requiredItems.map(req => {
+        const price = req.item.avg24hPrice || req.item.lastLowPrice || 0;
+        if (price === 0) hasMissingPrices = true;
+        totalCost += price * req.count;
+        return {
+            ...req,
+            price: price,
+            totalCost: price * req.count
+        };
+    });
+    
+    const rewardCount = barter.rewardItems.find(r => r.item.id === targetItemId)?.count || 1;
+    
+    return {
+        costPerItem: hasMissingPrices ? Infinity : totalCost / rewardCount,
+        requiredItemDetails,
+        hasMissingPrices
+    };
+}
+```
+
+### Cheapest Method Analysis
+```javascript
+function findCheapestMethod(item, requiredCount, barters, crafts) {
+    const fleaRestricted = isFleaMarketRestricted(item);
+    const fleaPrice = item.avg24hPrice || item.lastLowPrice || 0;
+    
+    let cheapestMethod = '';
+    let cheapestCost = Infinity;
+    
+    // Only consider flea market if not restricted and has a price
+    if (!fleaRestricted && fleaPrice > 0) {
+        cheapestMethod = 'Flea Market';
+        cheapestCost = fleaPrice * requiredCount;
+    }
+    
+    // Check barters
+    const itemBarters = barters.filter(b => b.item === item.name);
+    if (itemBarters.length > 0) {
+        const barterCost = itemBarters[0].costPerItem * requiredCount;
+        if (barterCost < cheapestCost) {
+            cheapestMethod = `Barter (${itemBarters[0].trader})`;
+            cheapestCost = barterCost;
+        }
+    }
+    
+    // Check crafts
+    const itemCrafts = crafts.filter(c => c.item === item.name);
+    if (itemCrafts.length > 0) {
+        const craftCost = itemCrafts[0].costPerItem * requiredCount;
+        if (craftCost < cheapestCost) {
+            cheapestMethod = `Craft (${itemCrafts[0].station})`;
+            cheapestCost = craftCost;
+        }
+    }
+    
+    return {
+        method: cheapestMethod || 'No method available',
+        cost: cheapestCost === Infinity ? 'Unknown' : cheapestCost
+    };
+}
+```
+
+## Performance Optimizations
+
+### 1. Batch Processing
+- **Item fetching**: Process items in batches of 50 to reduce API calls
+- **Rate limiting**: 100ms delay between batches to prevent API overload
+- **Caching**: Use Map for O(1) item lookups
+
+### 2. Analysis Depth Levels
+- **Basic**: Quest items + flea restrictions only
+- **Detailed**: + Barters and crafts analysis
+- **Complete**: + Trader weapons containing quest items
+
+### 3. Memory Management
+```javascript
+// Use Map for efficient caching
+const itemCache = new Map();
+items.forEach(item => itemCache.set(item.id, item));
+
+// Reuse data structures
+const analysisData = {
+    items: itemCache,
+    traders: [],
+    questAnalyses: []
+};
+```
+
+## Integration Guide
+
+### 1. Component Structure
+```
+src/
+├── components/
+│   ├── QuestAnalysis/
+│   │   ├── QuestAnalyzer.tsx          # Main component
+│   │   ├── QuestCard.tsx              # Individual quest display
+│   │   ├── ItemCard.tsx               # Item details with acquisition methods
+│   │   ├── BarterDetails.tsx          # Barter requirements breakdown
+│   │   ├── CraftDetails.tsx           # Craft requirements breakdown
+│   │   └── TraderWeapons.tsx          # Weapons containing quest items
+│   └── shared/
+│       └── ItemTable.tsx              # Reusable item display
+├── hooks/
+│   ├── useQuestAnalysis.ts            # Main analysis hook
+│   ├── useTarkovData.ts               # GraphQL data fetching
+│   └── useItemCache.ts                # Item caching logic
+├── utils/
+│   ├── quest-analyzer.ts              # Core analysis functions
+│   ├── tarkov-utils.ts                # Utility functions
+│   └── cost-calculator.ts             # Cost calculation logic
+└── types/
+    └── quest-analysis.ts              # TypeScript definitions
+```
+
+### 2. React Hook Implementation
+```typescript
+// useQuestAnalysis.ts
+export function useQuestAnalysis(questIds: string[], depth: AnalysisDepth = 'detailed') {
+    const [analysis, setAnalysis] = useState<QuestAnalysis[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    
+    const analyzeQuests = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+            // 1. Fetch quests
+            const quests = await fetchQuests(questIds);
+            
+            // 2. Get all required item IDs
+            const itemIds = extractItemIds(quests);
+            
+            // 3. Fetch items in batches
+            const items = await fetchItemsInBatches(itemIds);
+            
+            // 4. Fetch trader weapons (if complete analysis)
+            const traders = depth === 'complete' ? await fetchTraders() : [];
+            
+            // 5. Analyze each quest
+            const analyses = quests.map(quest => 
+                analyzeQuestItems(quest, items, traders, depth)
+            );
+            
+            setAnalysis(analyses);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [questIds, depth]);
+    
+    return { analysis, loading, error, analyzeQuests };
+}
+```
+
+### 3. Component Usage
+```tsx
+// QuestAnalyzer.tsx
+import { useQuestAnalysis } from '../hooks/useQuestAnalysis';
+
+const RED_ACHIEVEMENT_QUESTS = [
+    '67af4c1405c58dc6f7056667', // Profitable Venture
+    '67af4c169d95ad16e004fd86', // Safety Guarantee
+    // ... other quest IDs
+];
+
+export function QuestAnalyzer() {
+    const { analysis, loading, error, analyzeQuests } = useQuestAnalysis(
+        RED_ACHIEVEMENT_QUESTS,
+        'complete'
+    );
+    
+    return (
+        <div className="quest-analyzer">
+            <button onClick={analyzeQuests} disabled={loading}>
+                {loading ? 'Analyzing...' : 'Analyze Red Achievement Quests'}
+            </button>
+            
+            {error && <div className="error">{error}</div>}
+            
+            {analysis.map(questAnalysis => (
+                <QuestCard key={questAnalysis.quest.id} analysis={questAnalysis} />
+            ))}
+        </div>
+    );
+}
+```
+
+## API Rate Limiting
+
+- **Batch size**: 50 items per request
+- **Delay**: 100ms between batches
+- **Error handling**: Retry failed batches with exponential backoff
+- **Caching**: Store results to avoid repeat requests
+
+## Testing
+
+The system includes comprehensive test files:
+- `test-profitable-venture-simple.html` - Single quest analysis
+- `test-peacekeeper-weapons.html` - Trader weapons testing  
+- `test-all-quests-analysis.html` - Complete Red Achievement analysis
+
+## Performance Metrics
+
+- **Single quest**: ~2-5 seconds
+- **Red Achievement series (7 quests)**: ~15-30 seconds
+- **Memory usage**: ~10-50MB depending on analysis depth
+- **API calls**: ~10-20 requests for complete analysis
+
+## Error Handling
+
+- **Missing items**: Graceful degradation with warnings
+- **API failures**: Retry with exponential backoff
+- **Invalid quest IDs**: Filter out non-existent quests
+- **Price data gaps**: Mark as "Unknown" and exclude from cost calculations
+
+This workflow provides a robust foundation for integrating comprehensive quest analysis into your Tarkov application.

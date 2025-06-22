@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peacekeeper Weapons Test</title>
+    <style>
+        body { 
+            font-family: 'Consolas', monospace; 
+            background: #1a1a1a; 
+            color: #e0e0e0; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: #2d2d2d; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+        }
+        button { 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin-right: 10px; 
+        }
+        button:disabled { background: #666; }
+        button:hover:not(:disabled) { background: #45a049; }
+        .weapon-card {
+            background: #3d3d3d;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        .weapon-icon {
+            width: 64px;
+            height: 64px;
+            background-color: #4d4d4d;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+        .weapon-info {
+            flex: 1;
+        }
+        .weapon-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        .weapon-details {
+            font-size: 14px;
+            color: #bbb;
+            margin-bottom: 3px;
+        }
+        .price {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .barter-price {
+            color: #FF9800;
+            font-weight: bold;
+        }
+        pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Peacekeeper Weapons Test</h1>
+        <p>Testing GraphQL queries to get all weapons from Peacekeeper (cash offers + barters)</p>
+        <button onclick="runTest()" id="testBtn">Run Test</button>
+        <button onclick="clearResults()" id="clearBtn">Clear Results</button>
+    </div>
+
+    <div class="container">
+        <h2>Progress Log</h2>
+        <div id="progressLog"></div>
+    </div>
+
+    <div class="container">
+        <h2>Weapons Containing Thermal Scope</h2>
+        <div id="targetWeaponsDisplay">No weapons with thermal scope found yet...</div>
+    </div>
+
+    <div class="container">
+        <h2>All Peacekeeper Weapons</h2>
+        <div id="weaponsDisplay">No weapons loaded yet...</div>
+    </div>
+
+    <div class="container">
+        <h2>Raw Data</h2>
+        <pre id="rawData">No data yet...</pre>
+    </div>
+
+    <script>
+        const API_URL = 'https://api.tarkov.dev/graphql';
+        const TARGET_ITEM_ID = '5a1eaa87fcdbcb001865f75e'; // Trijicon REAP-IR thermal scope
+        let testData = {
+            cashOffers: [],
+            barters: [],
+            allWeapons: [],
+            weaponsWithTargetItem: []
+        };
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            
+            const progressLog = document.getElementById('progressLog');
+            const color = type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#ffa500';
+            progressLog.innerHTML += `<div style="color: ${color}; margin: 5px 0;">${logEntry}</div>`;
+            progressLog.scrollTop = progressLog.scrollHeight;
+            
+            console.log(logEntry);
+        }
+
+        async function graphqlQuery(query, variables = {}) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, variables })
+                });
+                
+                const data = await response.json();
+                if (data.errors) {
+                    throw new Error(data.errors.map(e => e.message).join(', '));
+                }
+                
+                return data.data;
+            } catch (error) {
+                log(`GraphQL Error: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        function isWeapon(item) {
+            const weaponCategories = [
+                'weapon', 'assault-rifle', 'assault-carbine', 'machine-gun', 
+                'sniper-rifle', 'marksman-rifle', 'shotgun', 'submachine-gun', 
+                'pistol', 'revolver', 'grenade-launcher'
+            ];
+            const itemCategories = item.categories?.map(c => c.normalizedName.toLowerCase()) || [];
+            return weaponCategories.some(wc => itemCategories.includes(wc));
+        }
+
+        async function runTest() {
+            try {
+                document.getElementById('testBtn').disabled = true;
+                document.getElementById('progressLog').innerHTML = '';
+                
+                log('🚀 Starting Peacekeeper Weapons Test', 'info');
+                
+                // Step 1: Get Peacekeeper trader data with cash offers and barters
+                log('🔍 Step 1: Querying Peacekeeper trader data...', 'info');
+                                 const peacekeeperQuery = `
+                     query GetPeacekeeperWeapons {
+                         traders {
+                             id name normalizedName
+                             cashOffers {
+                                 item {
+                                     id name shortName iconLink
+                                     categories { id name normalizedName }
+                                     containsItems {
+                                         item { id name shortName iconLink }
+                                         count
+                                     }
+                                 }
+                                 price priceRUB currency
+                                 minTraderLevel buyLimit
+                             }
+                             barters {
+                                 id level
+                                 rewardItems {
+                                     item {
+                                         id name shortName iconLink
+                                         categories { id name normalizedName }
+                                         containsItems {
+                                             item { id name shortName iconLink }
+                                             count
+                                         }
+                                     }
+                                     count
+                                 }
+                                 requiredItems {
+                                     item { id name shortName }
+                                     count
+                                 }
+                             }
+                         }
+                     }
+                 `;
+                
+                                 const traderData = await graphqlQuery(peacekeeperQuery);
+                 log(`📊 Retrieved ${traderData.traders.length} traders: ${traderData.traders.map(t => t.name).join(', ')}`, 'info');
+                 
+                 const peacekeeper = traderData.traders.find(t => t.normalizedName === 'peacekeeper');
+                 
+                 if (!peacekeeper) {
+                     log(`❌ Available traders: ${traderData.traders.map(t => `${t.name} (${t.normalizedName})`).join(', ')}`, 'error');
+                     throw new Error('Peacekeeper not found in traders list');
+                 }
+                
+                log(`✅ Found Peacekeeper with ${peacekeeper.cashOffers.length} cash offers and ${peacekeeper.barters.length} barters`, 'success');
+                
+                // Step 2: Filter weapons from cash offers
+                log('🔫 Step 2: Filtering weapons from cash offers...', 'info');
+                const weaponCashOffers = peacekeeper.cashOffers.filter(offer => isWeapon(offer.item));
+                log(`Found ${weaponCashOffers.length} weapon cash offers`, 'info');
+                
+                weaponCashOffers.forEach(offer => {
+                    log(`   • ${offer.item.name} - $${offer.price} (₽${offer.priceRUB}) - Level ${offer.minTraderLevel}`, 'info');
+                });
+                
+                // Step 3: Filter weapons from barters
+                log('🔄 Step 3: Filtering weapons from barters...', 'info');
+                const weaponBarters = [];
+                peacekeeper.barters.forEach(barter => {
+                    barter.rewardItems.forEach(reward => {
+                        if (isWeapon(reward.item)) {
+                            weaponBarters.push({
+                                barter: barter,
+                                weapon: reward.item,
+                                count: reward.count
+                            });
+                        }
+                    });
+                });
+                
+                log(`Found ${weaponBarters.length} weapon barters`, 'info');
+                
+                weaponBarters.forEach(wb => {
+                    const reqItems = wb.barter.requiredItems.map(req => `${req.count}x ${req.item.name}`).join(', ');
+                    log(`   • ${wb.weapon.name} (${wb.count}x) - Level ${wb.barter.level} - Requires: ${reqItems}`, 'info');
+                });
+                
+                // Store results
+                testData.cashOffers = weaponCashOffers;
+                testData.barters = weaponBarters;
+                testData.allWeapons = [
+                    ...weaponCashOffers.map(offer => ({
+                        type: 'cash',
+                        weapon: offer.item,
+                        price: `$${offer.price} (₽${offer.priceRUB})`,
+                        level: offer.minTraderLevel,
+                        buyLimit: offer.buyLimit
+                    })),
+                    ...weaponBarters.map(wb => ({
+                        type: 'barter',
+                        weapon: wb.weapon,
+                        price: wb.barter.requiredItems.map(req => `${req.count}x ${req.item.name}`).join(', '),
+                        level: wb.barter.level,
+                        count: wb.count
+                    }))
+                ];
+                
+                                 // Step 4: Check for weapons containing the target thermal scope
+                 log('🔍 Step 4: Checking weapons for Trijicon REAP-IR thermal scope...', 'info');
+                 const weaponsWithTargetItem = [];
+                 
+                 // Check cash offer weapons
+                 weaponCashOffers.forEach(offer => {
+                     if (offer.item.containsItems && offer.item.containsItems.length > 0) {
+                         const containsTarget = offer.item.containsItems.find(contained => 
+                             contained.item.id === TARGET_ITEM_ID
+                         );
+                         if (containsTarget) {
+                             weaponsWithTargetItem.push({
+                                 type: 'cash',
+                                 weapon: offer.item,
+                                 price: `$${offer.price} (₽${offer.priceRUB})`,
+                                 level: offer.minTraderLevel,
+                                 containedItem: containsTarget,
+                                 buyLimit: offer.buyLimit
+                             });
+                             log(`   💰 CASH: ${offer.item.name} contains ${containsTarget.count}x ${containsTarget.item.name} - $${offer.price} (Level ${offer.minTraderLevel})`, 'success');
+                         }
+                     }
+                 });
+                 
+                 // Check barter weapons
+                 weaponBarters.forEach(wb => {
+                     if (wb.weapon.containsItems && wb.weapon.containsItems.length > 0) {
+                         const containsTarget = wb.weapon.containsItems.find(contained => 
+                             contained.item.id === TARGET_ITEM_ID
+                         );
+                         if (containsTarget) {
+                             const reqItems = wb.barter.requiredItems.map(req => `${req.count}x ${req.item.name}`).join(', ');
+                             weaponsWithTargetItem.push({
+                                 type: 'barter',
+                                 weapon: wb.weapon,
+                                 price: reqItems,
+                                 level: wb.barter.level,
+                                 containedItem: containsTarget,
+                                 count: wb.count
+                             });
+                             log(`   🔄 BARTER: ${wb.weapon.name} contains ${containsTarget.count}x ${containsTarget.item.name} - ${reqItems} (Level ${wb.barter.level})`, 'success');
+                         }
+                     }
+                 });
+                 
+                 testData.weaponsWithTargetItem = weaponsWithTargetItem;
+                 
+                 log(`✅ Total weapons found: ${testData.allWeapons.length}`, 'success');
+                 log(`🎯 Weapons containing thermal scope: ${weaponsWithTargetItem.length}`, weaponsWithTargetItem.length > 0 ? 'success' : 'warning');
+                 displayResults();
+                
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`, 'error');
+                console.error('Test error:', error);
+            } finally {
+                document.getElementById('testBtn').disabled = false;
+            }
+        }
+
+                 function displayResults() {
+             const weaponsDiv = document.getElementById('weaponsDisplay');
+             const targetWeaponsDiv = document.getElementById('targetWeaponsDisplay');
+             const rawDataDiv = document.getElementById('rawData');
+             
+             // Display weapons containing thermal scope
+             let targetWeaponsHTML = '';
+             if (testData.weaponsWithTargetItem.length > 0) {
+                 testData.weaponsWithTargetItem.forEach(weapon => {
+                     const priceClass = weapon.type === 'cash' ? 'price' : 'barter-price';
+                     targetWeaponsHTML += `
+                         <div class="weapon-card" style="border-left: 4px solid #4CAF50;">
+                             <img src="${weapon.weapon.iconLink}" alt="${weapon.weapon.name}" class="weapon-icon" onerror="this.style.display='none'">
+                             <div class="weapon-info">
+                                 <div class="weapon-name">🎯 ${weapon.weapon.name}</div>
+                                 <div class="weapon-details">Short Name: ${weapon.weapon.shortName}</div>
+                                 <div class="weapon-details">Categories: ${weapon.weapon.categories.map(c => c.name).join(', ')}</div>
+                                 <div class="weapon-details">Type: ${weapon.type.toUpperCase()} - Level ${weapon.level}</div>
+                                 <div class="weapon-details ${priceClass}">
+                                     ${weapon.type === 'cash' ? 'Price' : 'Barter'}: ${weapon.price}
+                                     ${weapon.buyLimit ? ` (Limit: ${weapon.buyLimit})` : ''}
+                                     ${weapon.count && weapon.count > 1 ? ` (${weapon.count}x)` : ''}
+                                 </div>
+                                 <div class="weapon-details" style="color: #FFD700; font-weight: bold;">
+                                     📡 Contains: ${weapon.containedItem.count}x ${weapon.containedItem.item.name}
+                                 </div>
+                             </div>
+                         </div>
+                     `;
+                 });
+             } else {
+                 targetWeaponsHTML = '<p>No weapons containing the thermal scope found.</p>';
+             }
+             targetWeaponsDiv.innerHTML = targetWeaponsHTML;
+             
+             // Display all weapons
+             let weaponsHTML = '';
+             
+             if (testData.allWeapons.length > 0) {
+                testData.allWeapons.forEach(weapon => {
+                    const priceClass = weapon.type === 'cash' ? 'price' : 'barter-price';
+                    weaponsHTML += `
+                        <div class="weapon-card">
+                            <img src="${weapon.weapon.iconLink}" alt="${weapon.weapon.name}" class="weapon-icon" onerror="this.style.display='none'">
+                            <div class="weapon-info">
+                                <div class="weapon-name">${weapon.weapon.name}</div>
+                                <div class="weapon-details">Short Name: ${weapon.weapon.shortName}</div>
+                                <div class="weapon-details">Categories: ${weapon.weapon.categories.map(c => c.name).join(', ')}</div>
+                                <div class="weapon-details">Type: ${weapon.type.toUpperCase()} - Level ${weapon.level}</div>
+                                <div class="weapon-details ${priceClass}">
+                                    ${weapon.type === 'cash' ? 'Price' : 'Barter'}: ${weapon.price}
+                                    ${weapon.buyLimit ? ` (Limit: ${weapon.buyLimit})` : ''}
+                                    ${weapon.count && weapon.count > 1 ? ` (${weapon.count}x)` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                weaponsHTML = '<p>No weapons found.</p>';
+            }
+            
+            weaponsDiv.innerHTML = weaponsHTML;
+            rawDataDiv.textContent = JSON.stringify(testData, null, 2);
+        }
+
+                 function clearResults() {
+             testData = { cashOffers: [], barters: [], allWeapons: [], weaponsWithTargetItem: [] };
+             document.getElementById('progressLog').innerHTML = '';
+             document.getElementById('targetWeaponsDisplay').innerHTML = 'No weapons with thermal scope found yet...';
+             document.getElementById('weaponsDisplay').innerHTML = 'No weapons loaded yet...';
+             document.getElementById('rawData').textContent = 'No data yet...';
+         }
+    </script>
+</body>
+</html> 
