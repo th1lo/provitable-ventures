@@ -106,7 +106,7 @@ export const ItemTable: React.FC<ItemTableProps> = ({
       ? 'text-white font-medium' 
       : 'text-sm text-neutral-900 dark:text-neutral-100 font-medium',
     badge: isDark 
-      ? 'px-2 py-1 bg-gray-600 rounded text-xs text-gray-300' 
+      ? 'px-2 py-1 bg-transparent border border-gray-600 rounded text-xs text-gray-300' 
       : 'text-xs',
     imageBg: isDark 
       ? 'w-8 h-8 rounded bg-gray-600 object-contain' 

@@ -51,19 +51,25 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
       setPvpRequiredItemsData(pvpRequiredData)
       setPveRequiredItemsData(pveRequiredData)
 
-      // Set initial caches to PvP data
-      setItemPriceCache(pvpPriceCacheData)
-      setRequiredItemsData(pvpRequiredData)
+      // Set initial caches based on current game mode
+      const currentPriceCache = gameMode === 'pvp' ? pvpPriceCacheData : pvePriceCacheData
+      const currentRequiredData = gameMode === 'pvp' ? pvpRequiredData : pveRequiredData
+      setItemPriceCache(currentPriceCache)
+      setRequiredItemsData(currentRequiredData)
 
-      // Calculate cheapest acquisition methods for flea market restricted items for both modes
+      // Calculate cheapest acquisition methods for flea market restricted items using current game mode
       for (const item of mappedPrices) {
         const isRestricted = isFleaMarketRestricted(item)
         
         if (isRestricted || (item.pvpPrice === 0 && item.pvePrice === 0)) {
-          // Calculate for PvP mode by default
-          const cheapestMethod = await findCheapestAcquisitionMethod(item, pvpPriceCacheData)
+          // Calculate for current game mode
+          const cheapestMethod = await findCheapestAcquisitionMethod(item, currentPriceCache)
           item.cheapestAcquisitionMethod = cheapestMethod
         }
+        
+        // Set the correct gameMode and avg24hPrice based on current mode
+        item.gameMode = gameMode
+        item.avg24hPrice = (gameMode === 'pvp' ? item.pvpPrice : item.pvePrice) || 0
       }
 
       setItemPrices(mappedPrices)
@@ -119,7 +125,45 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
     }
 
     updateGameModeData()
-  }, [gameMode, itemPrices, pvpPriceCache, pvePriceCache, pvpRequiredItemsData, pveRequiredItemsData]) // Switch and recalculate using cached data
+  }, [gameMode, itemPrices, pvpPriceCache, pvePriceCache, pvpRequiredItemsData, pveRequiredItemsData])
+
+  // Trigger game mode update when itemPrices are first loaded
+  useEffect(() => {
+    if (itemPrices.length > 0 && pvpPriceCache.size > 0 && pvePriceCache.size > 0) {
+      // Check if we need to update game mode after initial load
+      if (itemPrices[0].gameMode !== gameMode) {
+        const updateGameModeData = async () => {
+          const currentPriceCache = gameMode === 'pvp' ? pvpPriceCache : pvePriceCache
+          const currentRequiredData = gameMode === 'pvp' ? pvpRequiredItemsData : pveRequiredItemsData
+          
+          setItemPriceCache(currentPriceCache)
+          setRequiredItemsData(currentRequiredData)
+
+          const updatedItemPrices = await Promise.all(itemPrices.map(async (item) => {
+            const updatedItem = {
+              ...item,
+              gameMode: gameMode,
+              avg24hPrice: (gameMode === 'pvp' ? item.pvpPrice : item.pvePrice) || 0
+            }
+
+            const isRestricted = isFleaMarketRestricted(item)
+            const currentPrice = gameMode === 'pvp' ? item.pvpPrice : item.pvePrice
+            
+            if (isRestricted || currentPrice === 0) {
+              const cheapestMethod = await findCheapestAcquisitionMethod(item, currentPriceCache)
+              updatedItem.cheapestAcquisitionMethod = cheapestMethod
+            }
+
+            return updatedItem
+          }))
+          
+          setItemPrices(updatedItemPrices)
+        }
+
+        updateGameModeData()
+      }
+    }
+  }, [itemPrices, gameMode, pvpPriceCache, pvePriceCache, pvpRequiredItemsData, pveRequiredItemsData])
 
   // Computed values - use the appropriate price based on game mode consistently
   const grandTotal = itemPrices.reduce((sum, item) => {

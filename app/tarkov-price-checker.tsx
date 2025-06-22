@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/button'
-import { Loader2, RefreshCw, Settings } from 'lucide-react'
+import { Loader2, RefreshCw } from 'lucide-react'
 import { GameMode } from './types/tarkov'
 
 // Import our modular components
@@ -15,7 +15,6 @@ import { isFleaMarketRestricted } from './utils/tarkov-utils'
 
 export default function TarkovPriceChecker() {
   const [expandedQuests, setExpandedQuests] = useState<Set<string>>(new Set())
-  const [bitcoinFarmLevel, setBitcoinFarmLevel] = useState(1)
   const [gameMode, setGameMode] = useState<GameMode>('pvp')
 
   const {
@@ -26,7 +25,6 @@ export default function TarkovPriceChecker() {
     itemPriceCache,
     requiredItemsData,
     grandTotal,
-    categoryTotals,
     fetchPrices,
     groupItemsByQuest,
     overallPriceChange
@@ -109,21 +107,6 @@ export default function TarkovPriceChecker() {
 
           {/* Status Row */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-            <div className="flex items-center gap-3">
-              <Settings className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
-              <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                Bitcoin Farm Level:
-              </label>
-              <select 
-                value={bitcoinFarmLevel} 
-                onChange={(e) => setBitcoinFarmLevel(Number(e.target.value))}
-                className="bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded px-2 py-1 text-sm font-medium text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
-              >
-                <option value={1} className="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Level 1</option>
-                <option value={2} className="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Level 2</option>
-                <option value={3} className="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">Level 3</option>
-              </select>
-            </div>
             
             {lastUpdated && (
               <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-500">
@@ -136,11 +119,10 @@ export default function TarkovPriceChecker() {
         {/* Summary */}
         <TarkovSummary
           grandTotal={grandTotal}
-          categoryTotals={categoryTotals}
           totalItems={itemPrices.length}
           restrictedItems={itemPrices.filter(item => isFleaMarketRestricted(item)).length}
-          loading={loading}
           overallPriceChange={overallPriceChange}
+          loading={loading}
         />
 
         {/* Error Display */}
@@ -168,10 +150,6 @@ export default function TarkovPriceChecker() {
         {/* Quest Tables */}
         {!loading && (
           <div className="space-y-4 sm:space-y-6">
-            {/* Header */}
-            <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100 px-1">
-              Quest Breakdown
-            </h2>
             
             {/* Quest Tables */}
             <div className="space-y-3 sm:space-y-4">

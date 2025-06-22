@@ -83,11 +83,13 @@ interface AcquisitionMethod {
 }
 
 const getPriceChangeBadge = (change: number | undefined) => {
-  if (change === undefined) return null
+  if (change === undefined || change === null || isNaN(change)) {
+    return null
+  }
 
   if (change > 0) {
     return (
-      <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-full text-green-700 dark:text-green-300 text-xs font-medium">
+      <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-medium">
         <TrendingUp className="h-3 w-3" />
         +{change.toFixed(1)}%
       </div>
@@ -95,14 +97,14 @@ const getPriceChangeBadge = (change: number | undefined) => {
   }
   if (change < 0) {
     return (
-      <div className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-full text-red-700 dark:text-red-300 text-xs font-medium">
+      <div className="flex items-center gap-1 text-red-600 dark:text-red-400 text-xs font-medium">
         <TrendingDown className="h-3 w-3" />
         {change.toFixed(1)}%
       </div>
     )
   }
   return (
-    <div className="inline-flex items-center gap-1 px-2 py-1 bg-neutral-100 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-full text-neutral-600 dark:text-neutral-400 text-xs font-medium">
+    <div className="flex items-center gap-1 text-neutral-500 dark:text-neutral-500 text-xs font-medium">
       <Minus className="h-3 w-3" />
       0.0%
     </div>
@@ -499,6 +501,156 @@ export const QuestTable: React.FC<QuestTableProps> = ({
     return gameMode === 'pve' ? (item.pvePrice || 0) : (item.pvpPrice || 0)
   }
 
+  // Helper function to get required item prices for bundled calculations
+  const getRequiredItemPrice = (itemId: string) => {
+    // Try to find the item in allItemPrices to get game mode specific pricing
+    if (allItemPrices && allItemPrices.length > 0) {
+      const itemData = allItemPrices.find(priceItem => priceItem.id === itemId)
+      if (itemData) {
+        // For flea restricted items, use acquisition method cost
+        if (isFleaMarketRestricted(itemData) && itemData.cheapestAcquisitionMethod?.costInRubles) {
+          return itemData.cheapestAcquisitionMethod.costInRubles
+        }
+        // For flea available items, use game mode specific pricing
+        return gameMode === 'pve' ? (itemData.pvePrice || 0) : (itemData.pvpPrice || 0)
+      }
+    }
+    // Fallback to flea market price from cache
+    return itemPriceCache.get(itemId) || 0
+  }
+
+  // Calculate overall price change for the quest
+  const calculateQuestPriceChange = () => {
+    let totalWeightedChange = 0
+    let totalWeight = 0
+
+    items.forEach(item => {
+      const itemValue = getTotalValue(item, gameMode)
+      let itemPriceChange: number | undefined
+
+      // For bundled items (like REAP-IR), calculate based on underlying costs
+      if (isFleaMarketRestricted(item) && item.cheapestAcquisitionMethod?.bundledItemDetails) {
+        const bundled = item.cheapestAcquisitionMethod.bundledItemDetails
+        let bundledWeightedChange = 0
+        let bundledWeight = 0
+
+        // Calculate change from required items (LEDX cost)
+        bundled.requiredItems?.forEach(req => {
+          // Try to find the item in allItemPrices first (works for both PvP and PvE)
+          const itemInAllPrices = allItemPrices?.find(item => item.id === req.item.id)
+          
+          if (itemInAllPrices?.changeLast48hPercent !== undefined) {
+            const reqPrice = getRequiredItemPrice(req.item.id)
+            const reqTotalCost = reqPrice * req.count
+            bundledWeightedChange += (itemInAllPrices.changeLast48hPercent || 0) * reqTotalCost
+            bundledWeight += reqTotalCost
+            
+            if (questName === 'Profitable Ventures') {
+              console.log('- Found in allItemPrices, change:', itemInAllPrices.changeLast48hPercent, 'cost:', reqTotalCost)
+            }
+          } else {
+            // Fallback to requiredItemsData if not found in allItemPrices
+            const reqItemData = requiredItemsData?.get(req.item.id)
+            if (reqItemData?.changeLast48hPercent !== undefined) {
+              const reqPrice = getRequiredItemPrice(req.item.id)
+              const reqTotalCost = reqPrice * req.count
+              bundledWeightedChange += (reqItemData.changeLast48hPercent || 0) * reqTotalCost
+              bundledWeight += reqTotalCost
+              
+              if (questName === 'Profitable Ventures') {
+                console.log('- Found in requiredItemsData, change:', reqItemData.changeLast48hPercent, 'cost:', reqTotalCost)
+              }
+            } else if (questName === 'Profitable Ventures') {
+              console.log('- NOT FOUND in either source!')
+            }
+          }
+        })
+
+        // Calculate change from weapon parts (money you get back - negative impact on net cost)
+        bundled.weaponParts?.forEach(part => {
+          // Try to find weapon part in allItemPrices for consistent data across PvP/PvE
+          const partInAllPrices = allItemPrices?.find(item => item.id === part.id)
+          let partPriceChange: number | undefined
+          
+          if (partInAllPrices?.changeLast48hPercent !== undefined) {
+            // Use percentage change directly from allItemPrices
+            partPriceChange = partInAllPrices.changeLast48hPercent
+            
+            if (questName === 'Profitable Ventures') {
+              console.log('- Found part in allItemPrices, change:', partPriceChange, 'sellValue:', part.sellValue)
+            }
+          } else if (part.changeLast48h !== undefined && part.fleaPrice > 0) {
+            // Calculate from changeLast48h and fleaPrice as fallback
+            partPriceChange = (part.changeLast48h / part.fleaPrice) * 100
+            
+            if (questName === 'Profitable Ventures') {
+              console.log('- Calculated part change from changeLast48h:', partPriceChange, 'sellValue:', part.sellValue)
+            }
+          } else if (questName === 'Profitable Ventures') {
+            console.log('- Part price change NOT FOUND')
+          }
+          
+          if (partPriceChange !== undefined) {
+            // Negative because selling parts reduces your net cost
+            bundledWeightedChange -= partPriceChange * part.sellValue
+            bundledWeight += part.sellValue
+          }
+        })
+
+        if (bundledWeight > 0) {
+          itemPriceChange = bundledWeightedChange / bundledWeight
+        }
+      } else if (isFleaMarketRestricted(item) && item.cheapestAcquisitionMethod) {
+        // Handle craft/barter acquisition methods
+        const acquisition = item.cheapestAcquisitionMethod as { 
+          type: string; 
+          data?: { 
+            requiredItems?: Array<{ 
+              item: { id: string; name: string }; 
+              count: number 
+            }> 
+          } 
+        }
+        if (acquisition.type === 'craft' && acquisition.data?.requiredItems) {
+          // Calculate price change based on craft required items
+          let craftWeightedChange = 0
+          let craftWeight = 0
+          
+          acquisition.data.requiredItems.forEach((req) => {
+            const reqItemData = allItemPrices?.find(priceItem => priceItem.id === req.item.id)
+            if (reqItemData?.changeLast48hPercent !== undefined) {
+              const reqPrice = getRequiredItemPrice(req.item.id)
+              const reqTotalCost = reqPrice * req.count
+              craftWeightedChange += (reqItemData.changeLast48hPercent || 0) * reqTotalCost
+              craftWeight += reqTotalCost
+            }
+          })
+          
+          if (craftWeight > 0) {
+            itemPriceChange = craftWeightedChange / craftWeight
+          }
+        } else {
+          // Fallback to direct price change
+          itemPriceChange = item.changeLast48hPercent
+        }
+      } else {
+        // For regular items, use their direct price change
+        itemPriceChange = item.changeLast48hPercent
+      }
+
+      // Add to quest total if we have a price change
+      if (itemPriceChange !== undefined) {
+        const weight = itemValue / totalCost
+        totalWeightedChange += itemPriceChange * weight
+        totalWeight += weight
+      }
+    })
+
+    return totalWeight > 0 ? totalWeightedChange / totalWeight : undefined
+  }
+
+  const questPriceChange = calculateQuestPriceChange()
+
   return (
     <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
       {/* Header */}
@@ -537,8 +689,8 @@ export const QuestTable: React.FC<QuestTableProps> = ({
               <div className="text-lg sm:text-xl md:text-2xl font-bold text-neutral-900 dark:text-neutral-100">
                 {formatCurrency(totalCost)}
               </div>
-              <div className="text-xs text-neutral-600 dark:text-neutral-400">
-                {gameMode.toUpperCase()}
+              <div className="flex justify-end mt-1">
+                {getPriceChangeBadge(questPriceChange)}
               </div>
             </div>
           </div>
