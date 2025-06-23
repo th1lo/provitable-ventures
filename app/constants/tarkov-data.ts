@@ -257,6 +257,7 @@ export const TRADER_RESET_TIMES: Record<string, number> = {
 // Quest wiki links
 export const QUEST_WIKI_LINKS: Record<string, string> = {
   'Profitable Ventures': 'https://escapefromtarkov.fandom.com/wiki/Profitable_Venture',
+  'Profitable Venture': 'https://escapefromtarkov.fandom.com/wiki/Profitable_Venture',
   'Safety Guarantee': 'https://escapefromtarkov.fandom.com/wiki/Safety_Guarantee',
   'Never Too Late To Learn': 'https://escapefromtarkov.fandom.com/wiki/Never_Too_Late_To_Learn',
   'Get a Foothold': 'https://escapefromtarkov.fandom.com/wiki/Get_a_Foothold',
