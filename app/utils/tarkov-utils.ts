@@ -222,10 +222,10 @@ export const analyzeWeaponParts = (bundledItem: ItemPrice['bundledItem']) => {
   const weaponParts = bundledItem.containsItems.map(part => {
     const isKeepForQuest = part.item.name.toLowerCase().includes('reap-ir');
     
-    // Get best trader sell price
-    const traderSells = part.item.sellFor.filter(sell => 
+    // Get best trader sell price with null checks
+    const traderSells = part.item.sellFor?.filter(sell => 
       sell.vendor?.normalizedName && sell.vendor.normalizedName !== 'flea-market'
-    );
+    ) || [];
     
     const bestTraderSell = traderSells.length > 0 
       ? traderSells.reduce((best, current) => 
@@ -233,8 +233,8 @@ export const analyzeWeaponParts = (bundledItem: ItemPrice['bundledItem']) => {
         )
       : null;
     
-    // Get flea market sell price
-    const fleaSell = part.item.sellFor.find(sell => 
+    // Get flea market sell price with null checks
+    const fleaSell = part.item.sellFor?.find(sell => 
       sell.vendor?.normalizedName === 'flea-market'
     );
     

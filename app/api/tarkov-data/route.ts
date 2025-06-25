@@ -1,27 +1,86 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { fetchItemPrices, fetchRequiredItemsData } from '../../utils/tarkov-utils'
 import type { GameMode, ApiItem, ItemPrice } from '../../types/tarkov'
+import { promises as fs } from 'fs'
+import path from 'path'
 
-// Red Achievement Quest IDs - the only hardcoded data
-const RED_ACHIEVEMENT_QUEST_IDS = [
-  '67af4c1405c58dc6f7056667', // Profitable Venture
-  '67af4c169d95ad16e004fd86', // Safety Guarantee
-  '67af4c17f4f1fb58a907f8f6', // Never Too Late To Learn
-  '67af4c1991ee75c6d7060a16', // Get a Foothold
-  '67af4c1a6c3ebfd8e6034916', // Profit Retention
-  '67af4c1cc0e59d55e2010b97', // A Life Lesson
-  '67af4c1d8c9482eca103e477'  // Consolation Prize
-]
+// Cache settings - different durations for different data types
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes for general cache
+const PRICE_CACHE_DURATION = 2 * 60 * 1000 // 2 minutes for price data (more frequent updates)
+const QUEST_CACHE_DURATION = 24 * 60 * 60 * 1000 // 24 hours for quest data (rarely changes)
+const TRADER_CACHE_DURATION = 12 * 60 * 60 * 1000 // 12 hours for trader data (changes less often)
+const CACHE_DIR = path.join(process.cwd(), '.cache')
 
-// Quest name to order mapping for UI consistency
-const QUEST_ORDER_MAPPING: Record<string, number> = {
-  'Profitable Venture': 1,
-  'Safety Guarantee': 2,
-  'Never Too Late To Learn': 3,
-  'Get a Foothold': 4,
-  'Profit Retention': 5,
-  'A Life Lesson': 6,
-  'Consolation Prize': 7
+// Ensure cache directory exists
+async function ensureCacheDir() {
+  try {
+    await fs.access(CACHE_DIR)
+  } catch {
+    await fs.mkdir(CACHE_DIR, { recursive: true })
+  }
+}
+
+// Helper to generate cache key
+function getCacheKey(prefix: string, gameMode: GameMode, suffix?: string): string {
+  return `${prefix}-${gameMode}${suffix ? `-${suffix}` : ''}.json`
+}
+
+// Check if cache is valid (not expired) with custom duration
+async function isCacheValid(filePath: string, customDuration?: number): Promise<boolean> {
+  try {
+    const stats = await fs.stat(filePath)
+    const now = Date.now()
+    const fileAge = now - stats.mtime.getTime()
+    const duration = customDuration || CACHE_DURATION
+    return fileAge < duration
+  } catch {
+    return false
+  }
+}
+
+// Read from cache
+async function readCache<T>(filePath: string): Promise<T | null> {
+  try {
+    const data = await fs.readFile(filePath, 'utf-8')
+    return JSON.parse(data)
+  } catch {
+    return null
+  }
+}
+
+// Write to cache
+async function writeCache<T>(filePath: string, data: T): Promise<void> {
+  try {
+    await ensureCacheDir()
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2))
+  } catch (error) {
+    console.error('Cache write failed:', error)
+    // Don't throw - caching is not critical
+  }
+}
+
+// Special cases - items not in quest objectives but still required
+const SPECIAL_QUEST_ITEMS = {
+  'Consolation Prize': {
+    id: '5c94bbff86f7747ee735c08f', // TerraGroup Labs access keycard
+    name: 'TerraGroup Labs access keycard',
+    shortName: 'Access',
+    quantity: 15, // Need 15 Labs cards for 15 extractions
+    reason: 'Required for 15 Labs extractions'
+  }
+}
+
+// Dynamic quest order detection - will be determined from quest dependencies
+function determineQuestOrder(quests: Quest[]): Record<string, number> {
+  // Create a basic ordering map based on quest discovery order
+  // In future: analyze taskRequirement dependencies for proper ordering
+  const orderMap: Record<string, number> = {}
+  
+  quests.forEach((quest, index) => {
+    orderMap[quest.name] = index + 1
+  })
+  
+  return orderMap
 }
 
 interface QuestObjective {
@@ -81,96 +140,7 @@ const QUEST_DATA_QUERY = `
   }
 `
 
-// Bundled items query for weapons containing quest items
-const BUNDLED_ITEMS_QUERY = `
-  query GetBundledItems($names: [String!]!, $gameMode: GameMode) {
-    items(names: $names, gameMode: $gameMode) {
-      id
-      name
-      shortName
-      avg24hPrice
-      lastLowPrice
-      iconLink
-      categories {
-        id
-        name
-        normalizedName
-      }
-      containsItems {
-        item {
-          id
-          name
-          shortName
-          iconLink
-          avg24hPrice
-          lastLowPrice
-          changeLast48h
-          sellFor {
-            source
-            price
-            currency
-            priceRUB
-            vendor {
-              name
-              normalizedName
-              ... on TraderOffer {
-                minTraderLevel
-                buyLimit
-              }
-              ... on FleaMarket {
-                foundInRaidRequired
-              }
-            }
-          }
-        }
-        count
-      }
-      bartersFor {
-        id
-        trader {
-          id
-          name
-          normalizedName
-        }
-        level
-        requiredItems {
-          item {
-            id
-            name
-            shortName
-            iconLink
-            avg24hPrice
-            lastLowPrice
-            changeLast48hPercent
-          }
-          count
-        }
-        rewardItems {
-          item {
-            id
-            name
-            shortName
-          }
-          count
-        }
-      }
-      sellFor {
-        source
-        price
-        currency
-        priceRUB
-        vendor {
-          name
-          normalizedName
-          ... on TraderOffer {
-            minTraderLevel
-            buyLimit
-          }
-        }
-      }
-    }
-  }
-`
+// REMOVED: Old hardcoded bundled items query - now using dynamic containsItems detection
 
 // GraphQL query helper
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,25 +158,64 @@ async function graphqlQuery(query: string, variables: Record<string, unknown> = 
   const data = await response.json()
   
   if (data.errors) {
+    console.error('GraphQL errors:', data.errors)
     throw new Error(`GraphQL errors: ${data.errors.map((e: { message: string }) => e.message).join(', ')}`)
   }
 
   return data.data
 }
 
-// Fetch Red Achievement quests dynamically
+// Fetch Red Achievement quests dynamically with caching
 async function fetchRedAchievementQuests(): Promise<Quest[]> {
+  const cacheFilePath = path.join(CACHE_DIR, 'quest-data.json')
+  
+  // Try to read from cache first (24 hour cache for quest data)
+  if (await isCacheValid(cacheFilePath, QUEST_CACHE_DURATION)) {
+    const cachedData = await readCache<{ quests: Quest[], timestamp: number }>(cacheFilePath)
+    if (cachedData?.quests) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Cache HIT for quest data (${cachedData.quests.length} quests)`)
+      }
+      return cachedData.quests
+    }
+  }
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Cache MISS for quest data - fetching from API')
+  }
+  
   const data: QuestApiResponse = await graphqlQuery(QUEST_DATA_QUERY)
   
-  // Filter for Red Achievement quests only
-  const redAchievementQuests = data.tasks.filter((quest: Quest) => 
-    RED_ACHIEVEMENT_QUEST_IDS.includes(quest.id)
+  // Dynamic Red Achievement quest detection by Skier trader and specific quest names
+  const redAchievementQuests = data.tasks.filter((quest: Quest) => {
+    // Filter by Skier trader AND quest names that match the Red Achievement series
+    const isSkierQuest = quest.trader.name === 'Skier'
+    const isRedAchievementQuest = [
+      'Profitable Venture',
+      'Safety Guarantee', 
+      'Never Too Late To Learn',
+      'Get a Foothold',
+      'Profit Retention',
+      'A Life Lesson',
+      'Consolation Prize'
+    ].includes(quest.name)
+    
+    return isSkierQuest && isRedAchievementQuest
+  })
+  
+  // Filter for quests that have required items OR special cases
+  const questsWithItems = redAchievementQuests.filter((quest: Quest) => 
+    quest.objectives.some((obj: QuestObjective) => obj.type === 'giveItem' && obj.item) ||
+    Object.keys(SPECIAL_QUEST_ITEMS).includes(quest.name)
   )
   
-  // Filter for quests that have required items
-  const questsWithItems = redAchievementQuests.filter((quest: Quest) => 
-    quest.objectives.some((obj: QuestObjective) => obj.type === 'giveItem' && obj.item)
-  )
+  // Cache the quest data
+  if (questsWithItems.length > 0) {
+    await writeCache(cacheFilePath, {
+      quests: questsWithItems,
+      timestamp: Date.now()
+    })
+  }
   
   return questsWithItems
 }
@@ -214,10 +223,12 @@ async function fetchRedAchievementQuests(): Promise<Quest[]> {
 // Extract quest items from dynamic quest data
 function extractQuestItems(quests: Quest[]): ItemPrice[] {
   const questItems: ItemPrice[] = []
+  const questOrderMap = determineQuestOrder(quests)
   
   quests.forEach(quest => {
-    const questOrder = QUEST_ORDER_MAPPING[quest.name] || 999
+    const questOrder = questOrderMap[quest.name] || 999
     
+    // Handle regular giveItem objectives
     quest.objectives.forEach(objective => {
       if (objective.type === 'giveItem' && objective.item && objective.count) {
         questItems.push({
@@ -244,13 +255,60 @@ function extractQuestItems(quests: Quest[]): ItemPrice[] {
         })
       }
     })
+    
+    // Handle special quest items (like Labs cards for Consolation Prize)
+    const specialItemKey = quest.name as keyof typeof SPECIAL_QUEST_ITEMS
+    if (SPECIAL_QUEST_ITEMS[specialItemKey]) {
+      const specialItem = SPECIAL_QUEST_ITEMS[specialItemKey]
+      questItems.push({
+        id: specialItem.id,
+        name: specialItem.name,
+        shortName: specialItem.shortName,
+        avg24hPrice: 0, // Will be filled by API data
+        lastLowPrice: 0,
+        changeLast48h: 0,
+        changeLast48hPercent: 0,
+        updated: new Date().toISOString(),
+        iconLink: '',
+        wikiLink: '',
+        quantity: specialItem.quantity,
+        category: quest.name,
+        crafts: [],
+        barters: [],
+        fleaMarketFee: 0,
+        sellFor: [],
+        gameMode: 'pvp' as GameMode,
+        pvpPrice: 0,
+        pvePrice: 0,
+        questOrder: questOrder
+      })
+    }
   })
   
   return questItems
 }
 
-// Batch fetch items by IDs in chunks for performance
+// Batch fetch items by IDs in chunks for performance with caching
 async function fetchItemsByIds(itemIds: string[], gameMode: GameMode, batchSize: number = 50): Promise<ApiItem[]> {
+  // Generate cache key based on item IDs hash
+  const itemIdsHash = Buffer.from(itemIds.sort().join(',')).toString('base64').slice(0, 16)
+  const cacheFilePath = path.join(CACHE_DIR, getCacheKey('items', gameMode, itemIdsHash))
+  
+  // Try to read from cache first
+  if (await isCacheValid(cacheFilePath)) {
+    const cachedData = await readCache<{ items: ApiItem[], timestamp: number }>(cacheFilePath)
+    if (cachedData?.items) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Cache HIT for ${gameMode} items (${cachedData.items.length} items)`)
+      }
+      return cachedData.items
+    }
+  }
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Cache MISS for ${gameMode} items - fetching from API`)
+  }
+  
   const allItems: ApiItem[] = []
   const batches: string[][] = []
   
@@ -414,54 +472,189 @@ async function fetchItemsByIds(itemIds: string[], gameMode: GameMode, batchSize:
     }
   }
   
+  // Cache the fetched data
+  if (allItems.length > 0) {
+    await writeCache(cacheFilePath, {
+      items: allItems,
+      timestamp: Date.now()
+    })
+  }
+  
   return allItems
 }
 
-// Find bundled items that contain quest items (like M4A1 with REAP-IR)
+// Find trader weapons that contain quest items (weapon mods/attachments)
 async function findBundledItems(questItems: ItemPrice[], gameMode: GameMode): Promise<Map<string, ApiItem>> {
+  const cacheFilePath = path.join(CACHE_DIR, getCacheKey('bundled-weapons', gameMode))
+  
+  // Try to read from cache first (12 hour cache for trader weapons)
+  if (await isCacheValid(cacheFilePath, TRADER_CACHE_DURATION)) {
+    const cachedData = await readCache<{ bundledItems: Array<[string, ApiItem]>, timestamp: number }>(cacheFilePath)
+    if (cachedData?.bundledItems) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Cache HIT for ${gameMode} trader weapons (${cachedData.bundledItems.length} weapons)`)
+      }
+      return new Map(cachedData.bundledItems)
+    }
+  }
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Cache MISS for ${gameMode} trader weapons - searching dynamically`)
+  }
+  
   const bundledItemsMap = new Map<string, ApiItem>()
   
-  // Look for weapons that might contain quest items
-  const weaponSearchTerms = [
-    'M4A1 REAP-IR', // Known bundled item for REAP-IR
-    'Colt M4A1 5.56x45 assault rifle REAP-IR'
-  ]
-  
+  // Simplified approach: Search for weapons that contain quest items
   try {
-    const data = await graphqlQuery(BUNDLED_ITEMS_QUERY, { 
-      names: weaponSearchTerms,
+    const SIMPLIFIED_WEAPON_QUERY = `
+      query FindWeaponsWithMods($gameMode: GameMode) {
+        items(gameMode: $gameMode) {
+          id
+          name
+          shortName
+          avg24hPrice
+          lastLowPrice
+          iconLink
+          categories {
+            id
+            name
+            normalizedName
+          }
+          containsItems {
+            item {
+              id
+              name
+              shortName
+              iconLink
+            }
+            count
+          }
+          sellFor {
+            source
+            price
+            currency
+            priceRUB
+            vendor {
+              name
+              normalizedName
+              ... on TraderOffer {
+                minTraderLevel
+                buyLimit
+              }
+            }
+          }
+          bartersFor {
+            id
+            trader {
+              id
+              name
+              normalizedName
+            }
+            level
+            requiredItems {
+              item {
+                id
+                name
+                shortName
+                iconLink
+                avg24hPrice
+                lastLowPrice
+                changeLast48hPercent
+              }
+              count
+            }
+            rewardItems {
+              item {
+                id
+                name
+                shortName
+              }
+              count
+            }
+          }
+        }
+      }
+    `
+    
+    const data = await graphqlQuery(SIMPLIFIED_WEAPON_QUERY, { 
       gameMode: gameMode === 'pve' ? 'pve' : undefined
     })
     
     if (data.items) {
-      data.items.forEach((item: ApiItem) => {
-        // Check if this bundled item contains any of our quest items
-        const containsQuestItem = item.containsItems?.some(contained => 
-          questItems.some(questItem => 
-            questItem.id === contained.item.id ||
-            questItem.shortName.toLowerCase().includes(contained.item.shortName.toLowerCase())
-          )
-        )
+      data.items.forEach((item: any) => {
+        // Only process weapons that have containsItems and are sold by traders
+        if (!item?.containsItems?.length) return
+        if (!item?.sellFor?.length && !item?.bartersFor?.length) return
         
-        if (containsQuestItem) {
-          // Map bundled items by the quest items they contain, not by their own shortName
-          item.containsItems?.forEach(contained => {
-            questItems.forEach(questItem => {
-              if (questItem.id === contained.item.id ||
-                  questItem.shortName.toLowerCase().includes(contained.item.shortName.toLowerCase())) {
-                bundledItemsMap.set(questItem.shortName, item)
-              }
-            })
-          })
+        // Check if it's available from traders (not just flea market)
+        const availableFromTraders = item.sellFor?.some((sell: any) => 
+          sell.vendor?.normalizedName && sell.vendor.normalizedName !== 'flea-market'
+        ) || item.bartersFor?.length > 0
+        
+        if (availableFromTraders) {
+          processWeaponForQuestItems(item, questItems, bundledItemsMap)
         }
       })
     }
   } catch (error) {
-    console.error('Failed to fetch bundled items:', error)
+    console.error('Failed to fetch trader weapons:', error)
     // Continue without bundled items if this fails
   }
   
+  // Cache the weapons data (12 hour cache)
+  if (bundledItemsMap.size > 0) {
+    await writeCache(cacheFilePath, {
+      bundledItems: Array.from(bundledItemsMap.entries()),
+      timestamp: Date.now()
+    })
+  }
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Found ${bundledItemsMap.size} trader weapons containing quest items`)
+  }
+  
   return bundledItemsMap
+}
+
+// Helper function to process weapon for quest items with proper safety checks
+function processWeaponForQuestItems(weapon: any, questItems: ItemPrice[], bundledItemsMap: Map<string, ApiItem>) {
+  if (!weapon?.categories?.length) return
+  
+  // Only process actual weapons, not ammo packs or other items
+  const weaponCategories = weapon.categories.map((cat: any) => cat.normalizedName)
+  const isWeapon = weaponCategories.some((cat: string) => 
+    ['assault-rifle', 'assault-carbine', 'machine-gun', 'sniper-rifle', 'marksman-rifle', 
+     'submachine-gun', 'shotgun', 'pistol', 'grenade-launcher'].includes(cat)
+  )
+  
+  if (!isWeapon) return
+  
+  // Check if this weapon contains any of our quest items (weapon mods/attachments)
+  const containsQuestItem = weapon.containsItems?.some((contained: any) => 
+    questItems.some(questItem => {
+      // Match by ID or by shortName for weapon attachments
+      const matchesId = questItem.id === contained.item?.id
+      const matchesShortName = questItem.shortName?.toLowerCase().includes(contained.item?.shortName?.toLowerCase())
+      return matchesId || matchesShortName
+    })
+  )
+  
+  if (containsQuestItem) {
+    weapon.containsItems.forEach((contained: any) => {
+      questItems.forEach(questItem => {
+        const matchesId = questItem.id === contained.item?.id
+        const matchesShortName = questItem.shortName?.toLowerCase().includes(contained.item?.shortName?.toLowerCase())
+        
+        if (matchesId || matchesShortName) {
+          bundledItemsMap.set(questItem.shortName, weapon)
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`Found trader weapon: ${weapon.name} contains ${questItem.shortName}`)
+          }
+        }
+      })
+    })
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -569,13 +762,65 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    // Step 8: Fetch prices for all required items for both game modes
-    const [pvpPriceCacheData, pvePriceCacheData, pvpRequiredData, pveRequiredData] = await Promise.all([
-      fetchItemPrices(Array.from(requiredItemIds), 'pvp'),
-      fetchItemPrices(Array.from(requiredItemIds), 'pve'),
-      fetchRequiredItemsData(Array.from(requiredItemIds), 'pvp'),
-      fetchRequiredItemsData(Array.from(requiredItemIds), 'pve')
+    // Step 8: Fetch prices for all required items for both game modes with caching
+    const requiredItemIdsArray = Array.from(requiredItemIds)
+    const requiredItemsHash = Buffer.from(requiredItemIdsArray.sort().join(',')).toString('base64').slice(0, 16)
+    
+    const pvpPriceCachePath = path.join(CACHE_DIR, getCacheKey('required-items', 'pvp', requiredItemsHash))
+    const pvePriceCachePath = path.join(CACHE_DIR, getCacheKey('required-items', 'pve', requiredItemsHash))
+    
+    // Try to read from cache first (2 minute cache for price data)
+    const [cachedPvpPrices, cachedPvePrices] = await Promise.all([
+      (async () => {
+        if (await isCacheValid(pvpPriceCachePath, PRICE_CACHE_DURATION)) {
+          const cached = await readCache<{ prices: Array<[string, number]>, requiredData: Array<[string, ApiItem]>, timestamp: number }>(pvpPriceCachePath)
+          if (cached) {
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Cache HIT for PvP required items')
+            }
+            return { prices: new Map(cached.prices), requiredData: new Map(cached.requiredData) }
+          }
+        }
+        return null
+      })(),
+      (async () => {
+        if (await isCacheValid(pvePriceCachePath, PRICE_CACHE_DURATION)) {
+          const cached = await readCache<{ prices: Array<[string, number]>, requiredData: Array<[string, ApiItem]>, timestamp: number }>(pvePriceCachePath)
+          if (cached) {
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Cache HIT for PvE required items')
+            }
+            return { prices: new Map(cached.prices), requiredData: new Map(cached.requiredData) }
+          }
+        }
+        return null
+      })()
     ])
+    
+    // Fetch missing data
+    const [pvpPriceCacheData, pvePriceCacheData, pvpRequiredData, pveRequiredData] = await Promise.all([
+      cachedPvpPrices?.prices || fetchItemPrices(requiredItemIdsArray, 'pvp'),
+      cachedPvePrices?.prices || fetchItemPrices(requiredItemIdsArray, 'pve'),
+      cachedPvpPrices?.requiredData || fetchRequiredItemsData(requiredItemIdsArray, 'pvp'),
+      cachedPvePrices?.requiredData || fetchRequiredItemsData(requiredItemIdsArray, 'pve')
+    ])
+    
+    // Cache the data if it was fetched fresh
+    if (!cachedPvpPrices && (pvpPriceCacheData.size > 0 || pvpRequiredData.size > 0)) {
+      await writeCache(pvpPriceCachePath, {
+        prices: Array.from(pvpPriceCacheData.entries()),
+        requiredData: Array.from(pvpRequiredData.entries()),
+        timestamp: Date.now()
+      })
+    }
+    
+    if (!cachedPvePrices && (pvePriceCacheData.size > 0 || pveRequiredData.size > 0)) {
+      await writeCache(pvePriceCachePath, {
+        prices: Array.from(pvePriceCacheData.entries()),
+        requiredData: Array.from(pveRequiredData.entries()),
+        timestamp: Date.now()
+      })
+    }
     
     const totalTime = performance.now() - startTime
     if (process.env.NODE_ENV === 'development') {
@@ -607,7 +852,8 @@ export async function GET(request: NextRequest) {
         'CDN-Cache-Control': `public, s-maxage=300`,
         'Vercel-CDN-Cache-Control': `public, s-maxage=300`,
         'X-Quest-Analysis': 'dynamic',
-        'X-Processing-Time': `${totalTime.toFixed(2)}ms`
+        'X-Processing-Time': `${totalTime.toFixed(2)}ms`,
+        'X-Cache-Status': 'server-cached'
       }
     })
     

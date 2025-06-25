@@ -1,0 +1,4359 @@
+{
+  "items": [
+    {
+      "id": "57347ca924597744596b4e71",
+      "name": "Graphics card",
+      "shortName": "GPU",
+      "avg24hPrice": 566736,
+      "lastLowPrice": 519999,
+      "changeLast48h": 6364,
+      "changeLast48hPercent": 1.14,
+      "updated": "2025-06-25T18:58:18.000Z",
+      "iconLink": "https://assets.tarkov.dev/57347ca924597744596b4e71-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Graphics_card",
+      "containsItems": [],
+      "fleaMarketFee": 30152,
+      "sellFor": [
+        {
+          "source": "therapist",
+          "price": 124740,
+          "currency": "RUB",
+          "priceRUB": 124740,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 79200,
+          "currency": "RUB",
+          "priceRUB": 79200,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 97020,
+          "currency": "RUB",
+          "priceRUB": 97020,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "peacekeeper",
+          "price": 755,
+          "currency": "USD",
+          "priceRUB": 89100,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Peacekeeper",
+            "normalizedName": "peacekeeper"
+          }
+        },
+        {
+          "source": "mechanic",
+          "price": 110880,
+          "currency": "RUB",
+          "priceRUB": 110880,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 519999,
+          "currency": "RUB",
+          "priceRUB": 519999,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "57864a66245977548f04a81f",
+          "name": "Electronics",
+          "normalizedName": "electronics"
+        },
+        {
+          "id": "5448eb774bdc2d0a728b4567",
+          "name": "Barter item",
+          "normalizedName": "barter-item"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "5eeca812c4c989140245ae0c",
+          "level": 3,
+          "duration": 349000,
+          "requiredItems": [
+            {
+              "count": 10,
+              "item": {
+                "id": "590a3b0486f7743954552bdb",
+                "name": "Printed circuit board",
+                "shortName": "PCB",
+                "iconLink": "https://assets.tarkov.dev/590a3b0486f7743954552bdb-icon.webp",
+                "avg24hPrice": 35311,
+                "lastLowPrice": 22222,
+                "changeLast48hPercent": -5.18
+              }
+            },
+            {
+              "count": 10,
+              "item": {
+                "id": "573477e124597737dd42e191",
+                "name": "PC CPU",
+                "shortName": "CPU",
+                "iconLink": "https://assets.tarkov.dev/573477e124597737dd42e191-icon.webp",
+                "avg24hPrice": 25336,
+                "lastLowPrice": 9000,
+                "changeLast48hPercent": -12.32
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5734779624597737e04bf329",
+                "name": "CPU fan",
+                "shortName": "CPU fan",
+                "iconLink": "https://assets.tarkov.dev/5734779624597737e04bf329-icon.webp",
+                "avg24hPrice": 4419,
+                "lastLowPrice": 4444,
+                "changeLast48hPercent": -2.09
+              }
+            },
+            {
+              "count": 3,
+              "item": {
+                "id": "5c05300686f7746dce784e5d",
+                "name": "VPX Flash Storage Module",
+                "shortName": "VPX",
+                "iconLink": "https://assets.tarkov.dev/5c05300686f7746dce784e5d-icon.webp",
+                "avg24hPrice": 100603,
+                "lastLowPrice": 88777,
+                "changeLast48hPercent": -7.81
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "60391afc25aff57af81f7085",
+                "name": "Ratchet wrench",
+                "shortName": "Ratchet",
+                "iconLink": "https://assets.tarkov.dev/60391afc25aff57af81f7085-icon.webp",
+                "avg24hPrice": 79273,
+                "lastLowPrice": 79000,
+                "changeLast48hPercent": -0.33
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "590c639286f774151567fa95",
+                "name": "Tech manual",
+                "shortName": "Manual",
+                "iconLink": "https://assets.tarkov.dev/590c639286f774151567fa95-icon.webp",
+                "avg24hPrice": 9845,
+                "lastLowPrice": 665,
+                "changeLast48hPercent": -19.49
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "57347ca924597744596b4e71",
+                "name": "Graphics card",
+                "shortName": "GPU"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fdf654e7600691aadf8",
+            "name": "Intelligence Center",
+            "normalizedName": "intelligence-center"
+          }
+        }
+      ],
+      "bartersFor": [
+        {
+          "id": "685944381e5cd8e7670bcb2d3",
+          "level": 3,
+          "trader": {
+            "id": "5a7c2eca46aef81a7ca2145d",
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          },
+          "requiredItems": [
+            {
+              "count": 7,
+              "item": {
+                "id": "5733279d245977289b77ec24",
+                "name": "Car battery",
+                "shortName": "Car battery",
+                "iconLink": "https://assets.tarkov.dev/5733279d245977289b77ec24-icon.webp",
+                "avg24hPrice": 60890,
+                "lastLowPrice": 49999,
+                "changeLast48hPercent": -5.86
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "57347ca924597744596b4e71",
+                "name": "Graphics card",
+                "shortName": "GPU"
+              }
+            }
+          ],
+          "taskUnlock": {
+            "id": "6744af0969a58fceba101fed",
+            "name": "The Price of Independence"
+          }
+        },
+        {
+          "id": "6859443b1e5cd8e7670bcc823",
+          "level": 3,
+          "trader": {
+            "id": "5a7c2eca46aef81a7ca2145d",
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          },
+          "requiredItems": [
+            {
+              "count": 7,
+              "item": {
+                "id": "5733279d245977289b77ec24",
+                "name": "Car battery",
+                "shortName": "Car battery",
+                "iconLink": "https://assets.tarkov.dev/5733279d245977289b77ec24-icon.webp",
+                "avg24hPrice": 60890,
+                "lastLowPrice": 49999,
+                "changeLast48hPercent": -5.86
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "57347ca924597744596b4e71",
+                "name": "Graphics card",
+                "shortName": "GPU"
+              }
+            }
+          ],
+          "taskUnlock": {
+            "id": "6745cbee909d2013670a4a55",
+            "name": "The Price of Independence"
+          }
+        }
+      ]
+    },
+    {
+      "id": "59faff1d86f7746c51718c9c",
+      "name": "Physical Bitcoin",
+      "shortName": "0.2BTC",
+      "avg24hPrice": null,
+      "lastLowPrice": null,
+      "changeLast48h": null,
+      "changeLast48hPercent": null,
+      "updated": "2025-06-25T11:20:15.000Z",
+      "iconLink": "https://assets.tarkov.dev/59faff1d86f7746c51718c9c-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Physical_Bitcoin",
+      "containsItems": [],
+      "fleaMarketFee": null,
+      "sellFor": [
+        {
+          "source": "therapist",
+          "price": 865943,
+          "currency": "RUB",
+          "priceRUB": 865943,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 549805,
+          "currency": "RUB",
+          "priceRUB": 549805,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 673511,
+          "currency": "RUB",
+          "priceRUB": 673511,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "peacekeeper",
+          "price": 5242,
+          "currency": "USD",
+          "priceRUB": 618531,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Peacekeeper",
+            "normalizedName": "peacekeeper"
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "57864a3d24597754843f8721",
+          "name": "Jewelry",
+          "normalizedName": "jewelry"
+        },
+        {
+          "id": "5448eb774bdc2d0a728b4567",
+          "name": "Barter item",
+          "normalizedName": "barter-item"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "5d5c205bd582a50d042a3c0e",
+          "level": 1,
+          "duration": 145000,
+          "requiredItems": [],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "59faff1d86f7746c51718c9c",
+                "name": "Physical Bitcoin",
+                "shortName": "0.2BTC"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d494a445b56502f18c98a10",
+            "name": "Bitcoin Farm",
+            "normalizedName": "bitcoin-farm"
+          }
+        }
+      ],
+      "bartersFor": [
+        {
+          "id": "6859442a1e5cd8e7670bc44b3",
+          "level": 2,
+          "taskUnlock": null,
+          "trader": {
+            "id": "5a7c2eca46aef81a7ca2145d",
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          },
+          "requiredItems": [
+            {
+              "count": 2,
+              "item": {
+                "id": "5c12620d86f7743f8b198b72",
+                "name": "Tetriz portable game console",
+                "shortName": "Tetriz",
+                "iconLink": "https://assets.tarkov.dev/5c12620d86f7743f8b198b72-icon.webp",
+                "avg24hPrice": 99746,
+                "lastLowPrice": 96000,
+                "changeLast48hPercent": -2.32
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5e2aedd986f7746d404f3aa4",
+                "name": "GreenBat lithium battery",
+                "shortName": "GreenBat",
+                "iconLink": "https://assets.tarkov.dev/5e2aedd986f7746d404f3aa4-icon.webp",
+                "avg24hPrice": 294200,
+                "lastLowPrice": 274444,
+                "changeLast48hPercent": -2.87
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "59faff1d86f7746c51718c9c",
+                "name": "Physical Bitcoin",
+                "shortName": "0.2BTC"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5a1eaa87fcdbcb001865f75e",
+      "name": "Trijicon REAP-IR thermal scope",
+      "shortName": "REAP-IR",
+      "avg24hPrice": null,
+      "lastLowPrice": null,
+      "changeLast48h": null,
+      "changeLast48hPercent": null,
+      "updated": "2025-06-25T11:21:39.000Z",
+      "iconLink": "https://assets.tarkov.dev/5a1eaa87fcdbcb001865f75e-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Trijicon_REAP-IR_thermal_scope",
+      "containsItems": [],
+      "fleaMarketFee": null,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 177897,
+          "currency": "RUB",
+          "priceRUB": 177897,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 142317,
+          "currency": "RUB",
+          "priceRUB": 142317,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 174339,
+          "currency": "RUB",
+          "priceRUB": 174339,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "peacekeeper",
+          "price": 1357,
+          "currency": "USD",
+          "priceRUB": 160107,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Peacekeeper",
+            "normalizedName": "peacekeeper"
+          }
+        },
+        {
+          "source": "mechanic",
+          "price": 199244,
+          "currency": "RUB",
+          "priceRUB": 199244,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 213476,
+          "currency": "RUB",
+          "priceRUB": 213476,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "55818aeb4bdc2ddc698b456a",
+          "name": "Special scope",
+          "normalizedName": "special-scope"
+        },
+        {
+          "id": "5448fe7a4bdc2d6f028b456b",
+          "name": "Sights",
+          "normalizedName": "sights"
+        },
+        {
+          "id": "550aa4154bdc2dd8348b456b",
+          "name": "Functional mod",
+          "normalizedName": "functional-mod"
+        },
+        {
+          "id": "5448fe124bdc2da5018b4567",
+          "name": "Weapon mod",
+          "normalizedName": "weapon-mod"
+        },
+        {
+          "id": "566162e44bdc2d3f298b4573",
+          "name": "Compound item",
+          "normalizedName": "compound-item"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "63a2327c151bfb591645c104",
+          "level": 3,
+          "duration": 86400,
+          "requiredItems": [
+            {
+              "count": 4,
+              "item": {
+                "id": "5d0377ce86f774186372f689",
+                "name": "Iridium military thermal vision module",
+                "shortName": "Iridium",
+                "iconLink": "https://assets.tarkov.dev/5d0377ce86f774186372f689-icon.webp",
+                "avg24hPrice": 89243,
+                "lastLowPrice": 88000,
+                "changeLast48hPercent": -18.01
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5d1b2ffd86f77425243e8d17",
+                "name": "NIXXOR lens",
+                "shortName": "NIXXOR",
+                "iconLink": "https://assets.tarkov.dev/5d1b2ffd86f77425243e8d17-icon.webp",
+                "avg24hPrice": 16154,
+                "lastLowPrice": 14440,
+                "changeLast48hPercent": -1.19
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "6389c7750ef44505c87f5996",
+                "name": "Microcontroller board",
+                "shortName": "MB",
+                "iconLink": "https://assets.tarkov.dev/6389c7750ef44505c87f5996-icon.webp",
+                "avg24hPrice": null,
+                "lastLowPrice": null,
+                "changeLast48hPercent": null
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5c05308086f7746b2101e90b",
+                "name": "Virtex programmable processor",
+                "shortName": "Virtex",
+                "iconLink": "https://assets.tarkov.dev/5c05308086f7746b2101e90b-icon.webp",
+                "avg24hPrice": 431878,
+                "lastLowPrice": 475000,
+                "changeLast48hPercent": -12.71
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "590c2e1186f77425357b6124",
+                "name": "Toolset",
+                "shortName": "Toolset",
+                "iconLink": "https://assets.tarkov.dev/590c2e1186f77425357b6124-icon.webp",
+                "avg24hPrice": 57006,
+                "lastLowPrice": 37000,
+                "changeLast48hPercent": -7.88
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "6389c8fb46b54c634724d847",
+                "name": "Silicon Optoelectronic Integrated Circuits textbook",
+                "shortName": "SOIC",
+                "iconLink": "https://assets.tarkov.dev/6389c8fb46b54c634724d847-icon.webp",
+                "avg24hPrice": null,
+                "lastLowPrice": null,
+                "changeLast48hPercent": null
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "6389c92d52123d5dd17f8876",
+                "name": "Advanced Electronic Materials textbook",
+                "shortName": "AEM",
+                "iconLink": "https://assets.tarkov.dev/6389c92d52123d5dd17f8876-icon.webp",
+                "avg24hPrice": null,
+                "lastLowPrice": null,
+                "changeLast48hPercent": null
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5a1eaa87fcdbcb001865f75e",
+                "name": "Trijicon REAP-IR thermal scope",
+                "shortName": "REAP-IR"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fda654e7600681d9315",
+            "name": "Workbench",
+            "normalizedName": "workbench"
+          }
+        }
+      ],
+      "bartersFor": [
+        {
+          "id": "685944301e5cd8e7670bc7675",
+          "level": 4,
+          "trader": {
+            "id": "5a7c2eca46aef81a7ca2145d",
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          },
+          "requiredItems": [
+            {
+              "count": 4,
+              "item": {
+                "id": "5d0376a486f7747d8050965c",
+                "name": "Military circuit board",
+                "shortName": "MCB",
+                "iconLink": "https://assets.tarkov.dev/5d0376a486f7747d8050965c-icon.webp",
+                "avg24hPrice": 100635,
+                "lastLowPrice": 74950,
+                "changeLast48hPercent": -12.1
+              }
+            },
+            {
+              "count": 4,
+              "item": {
+                "id": "5d0377ce86f774186372f689",
+                "name": "Iridium military thermal vision module",
+                "shortName": "Iridium",
+                "iconLink": "https://assets.tarkov.dev/5d0377ce86f774186372f689-icon.webp",
+                "avg24hPrice": 89243,
+                "lastLowPrice": 88000,
+                "changeLast48hPercent": -18.01
+              }
+            },
+            {
+              "count": 4,
+              "item": {
+                "id": "5d0378d486f77420421a5ff4",
+                "name": "Military power filter",
+                "shortName": "PFilter",
+                "iconLink": "https://assets.tarkov.dev/5d0378d486f77420421a5ff4-icon.webp",
+                "avg24hPrice": 244707,
+                "lastLowPrice": 222222,
+                "changeLast48hPercent": 5.72
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5a1eaa87fcdbcb001865f75e",
+                "name": "Trijicon REAP-IR thermal scope",
+                "shortName": "REAP-IR"
+              }
+            }
+          ],
+          "taskUnlock": {
+            "id": "5b47825886f77468074618d3",
+            "name": "Gunsmith - Part 22"
+          }
+        },
+        {
+          "id": "6859443e1e5cd8e7670bcdd35",
+          "level": 4,
+          "taskUnlock": null,
+          "trader": {
+            "id": "58330581ace78e27b8b10cee",
+            "name": "Skier",
+            "normalizedName": "skier"
+          },
+          "requiredItems": [
+            {
+              "count": 5,
+              "item": {
+                "id": "59e3647686f774176a362507",
+                "name": "Wooden clock",
+                "shortName": "Clock",
+                "iconLink": "https://assets.tarkov.dev/59e3647686f774176a362507-icon.webp",
+                "avg24hPrice": 112256,
+                "lastLowPrice": 61000,
+                "changeLast48hPercent": -10.14
+              }
+            },
+            {
+              "count": 6,
+              "item": {
+                "id": "59faf7ca86f7740dbe19f6c2",
+                "name": "Roler Submariner gold wrist watch",
+                "shortName": "Roler",
+                "iconLink": "https://assets.tarkov.dev/59faf7ca86f7740dbe19f6c2-icon.webp",
+                "avg24hPrice": 78688,
+                "lastLowPrice": 60000,
+                "changeLast48hPercent": 1.01
+              }
+            },
+            {
+              "count": 6,
+              "item": {
+                "id": "5d235a5986f77443f6329bc6",
+                "name": "Gold skull ring",
+                "shortName": "Skull",
+                "iconLink": "https://assets.tarkov.dev/5d235a5986f77443f6329bc6-icon.webp",
+                "avg24hPrice": 102357,
+                "lastLowPrice": 125000,
+                "changeLast48hPercent": -29.69
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5a1eaa87fcdbcb001865f75e",
+                "name": "Trijicon REAP-IR thermal scope",
+                "shortName": "REAP-IR"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5bb2475ed4351e00853264e3",
+      "name": "HK 416A5 5.56x45 assault rifle",
+      "shortName": "HK 416A5",
+      "avg24hPrice": 201324,
+      "lastLowPrice": 150000,
+      "changeLast48h": -115820,
+      "changeLast48hPercent": -36.52,
+      "updated": "2025-06-25T18:40:28.000Z",
+      "iconLink": "https://assets.tarkov.dev/5bb2475ed4351e00853264e3-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/HK_416A5_5.56x45_assault_rifle",
+      "fleaMarketFee": 14344,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 10900,
+          "currency": "RUB",
+          "priceRUB": 10900,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 8720,
+          "currency": "RUB",
+          "priceRUB": 8720,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 10682,
+          "currency": "RUB",
+          "priceRUB": 10682,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "peacekeeper",
+          "price": 83,
+          "currency": "USD",
+          "priceRUB": 9810,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Peacekeeper",
+            "normalizedName": "peacekeeper"
+          }
+        },
+        {
+          "source": "mechanic",
+          "price": 12208,
+          "currency": "RUB",
+          "priceRUB": 12208,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 150000,
+          "currency": "RUB",
+          "priceRUB": 150000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "containsItems": [
+        {
+          "count": 1,
+          "item": {
+            "id": "5bb20e0ed4351e3bac1212dc",
+            "name": "AR-15 HK Battle Grip Beavertail pistol grip",
+            "shortName": "Battle Grip",
+            "iconLink": "https://assets.tarkov.dev/5bb20e0ed4351e3bac1212dc-icon.webp",
+            "avg24hPrice": 12939,
+            "lastLowPrice": 4998,
+            "changeLast48h": -3508,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 1495,
+                "currency": "RUB",
+                "priceRUB": 1495,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 1196,
+                "currency": "RUB",
+                "priceRUB": 1196,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 1465,
+                "currency": "RUB",
+                "priceRUB": 1465,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 11,
+                "currency": "USD",
+                "priceRUB": 1345,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 1674,
+                "currency": "RUB",
+                "priceRUB": 1674,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 4998,
+                "currency": "RUB",
+                "priceRUB": 4998,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "5c05413a0db834001c390617",
+            "name": "AR-15 5.56x45 HK Steel Maritime STANAG 30-round magazine",
+            "shortName": "HK Steel",
+            "iconLink": "https://assets.tarkov.dev/5c05413a0db834001c390617-icon.webp",
+            "avg24hPrice": 25218,
+            "lastLowPrice": 40000,
+            "changeLast48h": 1594,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 1810,
+                "currency": "RUB",
+                "priceRUB": 1810,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 1448,
+                "currency": "RUB",
+                "priceRUB": 1448,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 1773,
+                "currency": "RUB",
+                "priceRUB": 1773,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 14,
+                "currency": "USD",
+                "priceRUB": 1629,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 2027,
+                "currency": "RUB",
+                "priceRUB": 2027,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 40000,
+                "currency": "RUB",
+                "priceRUB": 40000,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "5bb20d53d4351e4502010a69",
+            "name": "HK 416A5 5.56x45 upper receiver",
+            "shortName": "416A5",
+            "iconLink": "https://assets.tarkov.dev/5bb20d53d4351e4502010a69-icon.webp",
+            "avg24hPrice": 88000,
+            "lastLowPrice": 20000,
+            "changeLast48h": 29391,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 3250,
+                "currency": "RUB",
+                "priceRUB": 3250,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 2600,
+                "currency": "RUB",
+                "priceRUB": 2600,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 3185,
+                "currency": "RUB",
+                "priceRUB": 3185,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 25,
+                "currency": "USD",
+                "priceRUB": 2925,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 3640,
+                "currency": "RUB",
+                "priceRUB": 3640,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 20000,
+                "currency": "RUB",
+                "priceRUB": 20000,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "5bb20d9cd4351e00334c9d8a",
+            "name": "HK 416 5.56x45 14.5 inch barrel with flip-up front sight",
+            "shortName": "416 14.5\"",
+            "iconLink": "https://assets.tarkov.dev/5bb20d9cd4351e00334c9d8a-icon.webp",
+            "avg24hPrice": 32225,
+            "lastLowPrice": 31000,
+            "changeLast48h": -1938,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 13700,
+                "currency": "RUB",
+                "priceRUB": 13700,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 10960,
+                "currency": "RUB",
+                "priceRUB": 10960,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 13426,
+                "currency": "RUB",
+                "priceRUB": 13426,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 104,
+                "currency": "USD",
+                "priceRUB": 12330,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 15344,
+                "currency": "RUB",
+                "priceRUB": 15344,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "jaeger",
+                "price": 16440,
+                "currency": "RUB",
+                "priceRUB": 16440,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Jaeger",
+                  "normalizedName": "jaeger"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 31000,
+                "currency": "RUB",
+                "priceRUB": 31000,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "544a38634bdc2d58388b4568",
+            "name": "AR-15 Colt USGI A2 5.56x45 flash hider",
+            "shortName": "USGI A2",
+            "iconLink": "https://assets.tarkov.dev/544a38634bdc2d58388b4568-icon.webp",
+            "avg24hPrice": 5663,
+            "lastLowPrice": 4000,
+            "changeLast48h": -4196,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 670,
+                "currency": "RUB",
+                "priceRUB": 670,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 536,
+                "currency": "RUB",
+                "priceRUB": 536,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 656,
+                "currency": "RUB",
+                "priceRUB": 656,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 5,
+                "currency": "USD",
+                "priceRUB": 603,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 750,
+                "currency": "RUB",
+                "priceRUB": 750,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 4000,
+                "currency": "RUB",
+                "priceRUB": 4000,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "5bb20dcad4351e3bac1212da",
+            "name": "HK 416A5 low profile gas block",
+            "shortName": "416A5",
+            "iconLink": "https://assets.tarkov.dev/5bb20dcad4351e3bac1212da-icon.webp",
+            "avg24hPrice": 40413,
+            "lastLowPrice": 45000,
+            "changeLast48h": 49,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 1300,
+                "currency": "RUB",
+                "priceRUB": 1300,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 1040,
+                "currency": "RUB",
+                "priceRUB": 1040,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 1274,
+                "currency": "RUB",
+                "priceRUB": 1274,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 10,
+                "currency": "USD",
+                "priceRUB": 1170,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 1456,
+                "currency": "RUB",
+                "priceRUB": 1456,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 45000,
+                "currency": "RUB",
+                "priceRUB": 45000,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "5bb20de5d4351e0035629e59",
+            "name": "HK 416 Quad Rail handguard",
+            "shortName": "416 4Rail",
+            "iconLink": "https://assets.tarkov.dev/5bb20de5d4351e0035629e59-icon.webp",
+            "avg24hPrice": 15383,
+            "lastLowPrice": 9000,
+            "changeLast48h": -8443,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 4050,
+                "currency": "RUB",
+                "priceRUB": 4050,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 3240,
+                "currency": "RUB",
+                "priceRUB": 3240,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 3969,
+                "currency": "RUB",
+                "priceRUB": 3969,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 31,
+                "currency": "USD",
+                "priceRUB": 3645,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 4536,
+                "currency": "RUB",
+                "priceRUB": 4536,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 9000,
+                "currency": "RUB",
+                "priceRUB": 9000,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "5bb20e49d4351e3bac1212de",
+            "name": "HK 416A5 flip-up rear sight",
+            "shortName": "416A5 RS",
+            "iconLink": "https://assets.tarkov.dev/5bb20e49d4351e3bac1212de-icon.webp",
+            "avg24hPrice": null,
+            "lastLowPrice": 1000,
+            "changeLast48h": -1000,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 400,
+                "currency": "RUB",
+                "priceRUB": 400,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 320,
+                "currency": "RUB",
+                "priceRUB": 320,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 392,
+                "currency": "RUB",
+                "priceRUB": 392,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 3,
+                "currency": "USD",
+                "priceRUB": 360,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 448,
+                "currency": "RUB",
+                "priceRUB": 448,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 1000,
+                "currency": "RUB",
+                "priceRUB": 1000,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "5bb20e58d4351e00320205d7",
+            "name": "HK 416 Enhanced Buffer Tube",
+            "shortName": "Enhanced Tube",
+            "iconLink": "https://assets.tarkov.dev/5bb20e58d4351e00320205d7-icon.webp",
+            "avg24hPrice": 18186,
+            "lastLowPrice": 15999,
+            "changeLast48h": -2078,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 2495,
+                "currency": "RUB",
+                "priceRUB": 2495,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 1996,
+                "currency": "RUB",
+                "priceRUB": 1996,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 2445,
+                "currency": "RUB",
+                "priceRUB": 2445,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 19,
+                "currency": "USD",
+                "priceRUB": 2245,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 2794,
+                "currency": "RUB",
+                "priceRUB": 2794,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "jaeger",
+                "price": 2994,
+                "currency": "RUB",
+                "priceRUB": 2994,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Jaeger",
+                  "normalizedName": "jaeger"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 15999,
+                "currency": "RUB",
+                "priceRUB": 15999,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "5bb20e70d4351e0035629f8f",
+            "name": "AR-15 HK Slim Line buttstock",
+            "shortName": "Slim Line",
+            "iconLink": "https://assets.tarkov.dev/5bb20e70d4351e0035629f8f-icon.webp",
+            "avg24hPrice": 20179,
+            "lastLowPrice": 12000,
+            "changeLast48h": 286,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 2550,
+                "currency": "RUB",
+                "priceRUB": 2550,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 2040,
+                "currency": "RUB",
+                "priceRUB": 2040,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 2499,
+                "currency": "RUB",
+                "priceRUB": 2499,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 19,
+                "currency": "USD",
+                "priceRUB": 2295,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 2856,
+                "currency": "RUB",
+                "priceRUB": 2856,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "jaeger",
+                "price": 3060,
+                "currency": "RUB",
+                "priceRUB": 3060,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Jaeger",
+                  "normalizedName": "jaeger"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 12000,
+                "currency": "RUB",
+                "priceRUB": 12000,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "count": 1,
+          "item": {
+            "id": "5bb20dbcd4351e44f824c04e",
+            "name": "AR-15 HK Extended Latch charging handle",
+            "shortName": "Ext. Latch",
+            "iconLink": "https://assets.tarkov.dev/5bb20dbcd4351e44f824c04e-icon.webp",
+            "avg24hPrice": 8710,
+            "lastLowPrice": 7800,
+            "changeLast48h": -7522,
+            "sellFor": [
+              {
+                "source": "prapor",
+                "price": 1458,
+                "currency": "RUB",
+                "priceRUB": 1458,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Prapor",
+                  "normalizedName": "prapor"
+                }
+              },
+              {
+                "source": "fence",
+                "price": 1166,
+                "currency": "RUB",
+                "priceRUB": 1166,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Fence",
+                  "normalizedName": "fence"
+                }
+              },
+              {
+                "source": "skier",
+                "price": 1429,
+                "currency": "RUB",
+                "priceRUB": 1429,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Skier",
+                  "normalizedName": "skier"
+                }
+              },
+              {
+                "source": "peacekeeper",
+                "price": 11,
+                "currency": "USD",
+                "priceRUB": 1312,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Peacekeeper",
+                  "normalizedName": "peacekeeper"
+                }
+              },
+              {
+                "source": "mechanic",
+                "price": 1633,
+                "currency": "RUB",
+                "priceRUB": 1633,
+                "vendor": {
+                  "minTraderLevel": 1,
+                  "buyLimit": null,
+                  "name": "Mechanic",
+                  "normalizedName": "mechanic"
+                }
+              },
+              {
+                "source": "fleaMarket",
+                "price": 7800,
+                "currency": "RUB",
+                "priceRUB": 7800,
+                "vendor": {
+                  "name": "Flea Market",
+                  "normalizedName": "flea-market",
+                  "foundInRaidRequired": false
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5447b5f14bdc2d61278b4567",
+          "name": "Assault rifle",
+          "normalizedName": "assault-rifle"
+        },
+        {
+          "id": "5422acb9af1c889c16000029",
+          "name": "Weapon",
+          "normalizedName": "weapon"
+        },
+        {
+          "id": "566162e44bdc2d3f298b4573",
+          "name": "Compound item",
+          "normalizedName": "compound-item"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [],
+      "bartersFor": []
+    },
+    {
+      "id": "5c0e530286f7747fa1419862",
+      "name": "Propital regenerative stimulant injector",
+      "shortName": "Propital",
+      "avg24hPrice": 43454,
+      "lastLowPrice": 43999,
+      "changeLast48h": -2082,
+      "changeLast48hPercent": -4.57,
+      "updated": "2025-06-25T19:04:25.000Z",
+      "iconLink": "https://assets.tarkov.dev/5c0e530286f7747fa1419862-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Propital_regenerative_stimulant_injector",
+      "containsItems": [],
+      "fleaMarketFee": 2384,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 10530,
+          "currency": "RUB",
+          "priceRUB": 10530,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 13267,
+          "currency": "RUB",
+          "priceRUB": 13267,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 8424,
+          "currency": "RUB",
+          "priceRUB": 8424,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 10319,
+          "currency": "RUB",
+          "priceRUB": 10319,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 12636,
+          "currency": "RUB",
+          "priceRUB": 12636,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 43999,
+          "currency": "RUB",
+          "priceRUB": 43999,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448f3a64bdc2d60728b456a",
+          "name": "Stimulant",
+          "normalizedName": "stimulant"
+        },
+        {
+          "id": "543be5664bdc2dd4348b4569",
+          "name": "Meds",
+          "normalizedName": "meds"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "5d8f614c9ea122564c316462",
+          "level": 3,
+          "duration": 6900,
+          "requiredItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5af0548586f7743a532b7e99",
+                "name": "Ibuprofen painkillers",
+                "shortName": "Ibuprofen",
+                "iconLink": "https://assets.tarkov.dev/5af0548586f7743a532b7e99-icon.webp",
+                "avg24hPrice": 86736,
+                "lastLowPrice": 75000,
+                "changeLast48hPercent": -9.61
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "5751a89d24597722aa0e8db0",
+                "name": "Golden Star balm",
+                "shortName": "GoldenStar",
+                "iconLink": "https://assets.tarkov.dev/5751a89d24597722aa0e8db0-icon.webp",
+                "avg24hPrice": 55867,
+                "lastLowPrice": 44420,
+                "changeLast48hPercent": -5.02
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5d1b3a5d86f774252167ba22",
+                "name": "Pile of meds",
+                "shortName": "Meds",
+                "iconLink": "https://assets.tarkov.dev/5d1b3a5d86f774252167ba22-icon.webp",
+                "avg24hPrice": 40151,
+                "lastLowPrice": 36000,
+                "changeLast48hPercent": -4.09
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 7,
+              "item": {
+                "id": "5c0e530286f7747fa1419862",
+                "name": "Propital regenerative stimulant injector",
+                "shortName": "Propital"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fcd654e7668ec2ec322",
+            "name": "Medstation",
+            "normalizedName": "medstation"
+          }
+        }
+      ],
+      "bartersFor": [
+        {
+          "id": "685944171e5cd8e7670bbd199",
+          "level": 2,
+          "trader": {
+            "id": "54cb57776803fa99248b456e",
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          },
+          "requiredItems": [
+            {
+              "count": 5,
+              "item": {
+                "id": "57513f07245977207e26a311",
+                "name": "Pack of apple juice",
+                "shortName": "Apple",
+                "iconLink": "https://assets.tarkov.dev/57513f07245977207e26a311-icon.webp",
+                "avg24hPrice": 9314,
+                "lastLowPrice": 7777,
+                "changeLast48hPercent": -14.27
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5c0e530286f7747fa1419862",
+                "name": "Propital regenerative stimulant injector",
+                "shortName": "Propital"
+              }
+            }
+          ],
+          "taskUnlock": {
+            "id": "64f3176921045e77405d63b5",
+            "name": "Ambulances Again"
+          }
+        },
+        {
+          "id": "685944171e5cd8e7670bbd229",
+          "level": 3,
+          "taskUnlock": null,
+          "trader": {
+            "id": "54cb57776803fa99248b456e",
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          },
+          "requiredItems": [
+            {
+              "count": 2,
+              "item": {
+                "id": "62a0a043cf4a99369e2624a5",
+                "name": "Bottle of OLOLO Multivitamins",
+                "shortName": "Vitamins",
+                "iconLink": "https://assets.tarkov.dev/62a0a043cf4a99369e2624a5-icon.webp",
+                "avg24hPrice": 24507,
+                "lastLowPrice": 20000,
+                "changeLast48hPercent": -0.47
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5c0e530286f7747fa1419862",
+                "name": "Propital regenerative stimulant injector",
+                "shortName": "Propital"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5c0e531d86f7747fa23f4d42",
+      "name": "SJ6 TGLabs combat stimulant injector",
+      "shortName": "SJ6",
+      "avg24hPrice": 96062,
+      "lastLowPrice": 89000,
+      "changeLast48h": 2703,
+      "changeLast48hPercent": 2.9,
+      "updated": "2025-06-25T18:58:07.000Z",
+      "iconLink": "https://assets.tarkov.dev/5c0e531d86f7747fa23f4d42-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/SJ6_TGLabs_combat_stimulant_injector",
+      "containsItems": [],
+      "fleaMarketFee": 5583,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 13975,
+          "currency": "RUB",
+          "priceRUB": 13975,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 17608,
+          "currency": "RUB",
+          "priceRUB": 17608,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 11180,
+          "currency": "RUB",
+          "priceRUB": 11180,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 13695,
+          "currency": "RUB",
+          "priceRUB": 13695,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 16770,
+          "currency": "RUB",
+          "priceRUB": 16770,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 89000,
+          "currency": "RUB",
+          "priceRUB": 89000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448f3a64bdc2d60728b456a",
+          "name": "Stimulant",
+          "normalizedName": "stimulant"
+        },
+        {
+          "id": "543be5664bdc2dd4348b4569",
+          "name": "Meds",
+          "normalizedName": "meds"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "5ede0502879619077751d00a",
+          "level": 3,
+          "duration": 5100,
+          "requiredItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5c0e531286f7747fa54205c2",
+                "name": "SJ1 TGLabs combat stimulant injector",
+                "shortName": "SJ1",
+                "iconLink": "https://assets.tarkov.dev/5c0e531286f7747fa54205c2-icon.webp",
+                "avg24hPrice": 31987,
+                "lastLowPrice": 33333,
+                "changeLast48hPercent": 7.14
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5d1b3a5d86f774252167ba22",
+                "name": "Pile of meds",
+                "shortName": "Meds",
+                "iconLink": "https://assets.tarkov.dev/5d1b3a5d86f774252167ba22-icon.webp",
+                "avg24hPrice": 40151,
+                "lastLowPrice": 36000,
+                "changeLast48hPercent": -4.09
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "59e3606886f77417674759a5",
+                "name": "Bottle of saline solution",
+                "shortName": "NaCl",
+                "iconLink": "https://assets.tarkov.dev/59e3606886f77417674759a5-icon.webp",
+                "avg24hPrice": 24340,
+                "lastLowPrice": 24000,
+                "changeLast48hPercent": -6.63
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "62a0a043cf4a99369e2624a5",
+                "name": "Bottle of OLOLO Multivitamins",
+                "shortName": "Vitamins",
+                "iconLink": "https://assets.tarkov.dev/62a0a043cf4a99369e2624a5-icon.webp",
+                "avg24hPrice": 24507,
+                "lastLowPrice": 20000,
+                "changeLast48hPercent": -0.47
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 2,
+              "item": {
+                "id": "5c0e531d86f7747fa23f4d42",
+                "name": "SJ6 TGLabs combat stimulant injector",
+                "shortName": "SJ6"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fcd654e7668ec2ec322",
+            "name": "Medstation",
+            "normalizedName": "medstation"
+          }
+        }
+      ],
+      "bartersFor": [
+        {
+          "id": "685944161e5cd8e7670bbcda9",
+          "level": 4,
+          "taskUnlock": null,
+          "trader": {
+            "id": "54cb57776803fa99248b456e",
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          },
+          "requiredItems": [
+            {
+              "count": 2,
+              "item": {
+                "id": "59e3606886f77417674759a5",
+                "name": "Bottle of saline solution",
+                "shortName": "NaCl",
+                "iconLink": "https://assets.tarkov.dev/59e3606886f77417674759a5-icon.webp",
+                "avg24hPrice": 24340,
+                "lastLowPrice": 24000,
+                "changeLast48hPercent": -6.63
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "59e361e886f774176c10a2a5",
+                "name": "Bottle of hydrogen peroxide",
+                "shortName": "H2O2",
+                "iconLink": "https://assets.tarkov.dev/59e361e886f774176c10a2a5-icon.webp",
+                "avg24hPrice": 58183,
+                "lastLowPrice": 33000,
+                "changeLast48hPercent": 7.66
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5c0e531d86f7747fa23f4d42",
+                "name": "SJ6 TGLabs combat stimulant injector",
+                "shortName": "SJ6"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5c0e534186f7747fa1419867",
+      "name": "eTG-change regenerative stimulant injector",
+      "shortName": "eTG-c",
+      "avg24hPrice": 127425,
+      "lastLowPrice": 114999,
+      "changeLast48h": -9559,
+      "changeLast48hPercent": -6.98,
+      "updated": "2025-06-25T19:20:09.000Z",
+      "iconLink": "https://assets.tarkov.dev/5c0e534186f7747fa1419867-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/ETG-change_regenerative_stimulant_injector",
+      "containsItems": [],
+      "fleaMarketFee": 7069,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 18915,
+          "currency": "RUB",
+          "priceRUB": 18915,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 23832,
+          "currency": "RUB",
+          "priceRUB": 23832,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 15132,
+          "currency": "RUB",
+          "priceRUB": 15132,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 18536,
+          "currency": "RUB",
+          "priceRUB": 18536,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 22698,
+          "currency": "RUB",
+          "priceRUB": 22698,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 114999,
+          "currency": "RUB",
+          "priceRUB": 114999,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448f3a64bdc2d60728b456a",
+          "name": "Stimulant",
+          "normalizedName": "stimulant"
+        },
+        {
+          "id": "543be5664bdc2dd4348b4569",
+          "name": "Meds",
+          "normalizedName": "meds"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "64b6b5c1c3abf20a9660daad",
+          "level": 2,
+          "duration": 4800,
+          "requiredItems": [
+            {
+              "count": 2,
+              "item": {
+                "id": "5d1b3a5d86f774252167ba22",
+                "name": "Pile of meds",
+                "shortName": "Meds",
+                "iconLink": "https://assets.tarkov.dev/5d1b3a5d86f774252167ba22-icon.webp",
+                "avg24hPrice": 40151,
+                "lastLowPrice": 36000,
+                "changeLast48hPercent": -4.09
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5d1b3f2d86f774253763b735",
+                "name": "Disposable syringe",
+                "shortName": "Syringe",
+                "iconLink": "https://assets.tarkov.dev/5d1b3f2d86f774253763b735-icon.webp",
+                "avg24hPrice": 55205,
+                "lastLowPrice": 33999,
+                "changeLast48hPercent": -8.03
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "5c0e530286f7747fa1419862",
+                "name": "Propital regenerative stimulant injector",
+                "shortName": "Propital",
+                "iconLink": "https://assets.tarkov.dev/5c0e530286f7747fa1419862-icon.webp",
+                "avg24hPrice": 43454,
+                "lastLowPrice": 43999,
+                "changeLast48hPercent": -4.57
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "5e8f3423fd7471236e6e3b64",
+                "name": "Bottle of Norvinsky Yadreniy premium kvass (0.6L)",
+                "shortName": "Kvass",
+                "iconLink": "https://assets.tarkov.dev/5e8f3423fd7471236e6e3b64-icon.webp",
+                "avg24hPrice": 30942,
+                "lastLowPrice": 28000,
+                "changeLast48hPercent": -8.05
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5c0e534186f7747fa1419867",
+                "name": "eTG-change regenerative stimulant injector",
+                "shortName": "eTG-c"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fcd654e7668ec2ec322",
+            "name": "Medstation",
+            "normalizedName": "medstation"
+          }
+        }
+      ],
+      "bartersFor": [
+        {
+          "id": "685944161e5cd8e7670bbcd79",
+          "level": 3,
+          "taskUnlock": null,
+          "trader": {
+            "id": "54cb57776803fa99248b456e",
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          },
+          "requiredItems": [
+            {
+              "count": 4,
+              "item": {
+                "id": "5d40412b86f7743cb332ac3a",
+                "name": "Schaman shampoo",
+                "shortName": "Shampoo",
+                "iconLink": "https://assets.tarkov.dev/5d40412b86f7743cb332ac3a-icon.webp",
+                "avg24hPrice": 37308,
+                "lastLowPrice": 29997,
+                "changeLast48hPercent": -8.49
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5c0e534186f7747fa1419867",
+                "name": "eTG-change regenerative stimulant injector",
+                "shortName": "eTG-c"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5c0e625a86f7742d77340f62",
+      "name": "BNTI Zhuk body armor (EMR)",
+      "shortName": "Zhuk EMR",
+      "avg24hPrice": 5620173,
+      "lastLowPrice": 4885000,
+      "changeLast48h": -198410,
+      "changeLast48hPercent": -3.41,
+      "updated": "2025-06-25T19:21:35.000Z",
+      "iconLink": "https://assets.tarkov.dev/5c0e625a86f7742d77340f62-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/BNTI_Zhuk_body_armor_(EMR)",
+      "containsItems": [],
+      "fleaMarketFee": 1334623,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 70575,
+          "currency": "RUB",
+          "priceRUB": 70575,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 56460,
+          "currency": "RUB",
+          "priceRUB": 56460,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 69163,
+          "currency": "RUB",
+          "priceRUB": 69163,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "peacekeeper",
+          "price": 538,
+          "currency": "USD",
+          "priceRUB": 63517,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Peacekeeper",
+            "normalizedName": "peacekeeper"
+          }
+        },
+        {
+          "source": "ragman",
+          "price": 87513,
+          "currency": "RUB",
+          "priceRUB": 87513,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Ragman",
+            "normalizedName": "ragman"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 4885000,
+          "currency": "RUB",
+          "priceRUB": 4885000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448e54d4bdc2dcc718b4568",
+          "name": "Armor",
+          "normalizedName": "armor"
+        },
+        {
+          "id": "57bef4c42459772e8d35a53b",
+          "name": "Armored equipment",
+          "normalizedName": "armored-equipment"
+        },
+        {
+          "id": "543be5f84bdc2dd4348b456a",
+          "name": "Equipment",
+          "normalizedName": "equipment"
+        },
+        {
+          "id": "566162e44bdc2d3f298b4573",
+          "name": "Compound item",
+          "normalizedName": "compound-item"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [],
+      "bartersFor": []
+    },
+    {
+      "id": "5c0e842486f77443a74d2976",
+      "name": "Maska-1SCh face shield (Killa Edition)",
+      "shortName": "1SCh FS",
+      "avg24hPrice": 78042,
+      "lastLowPrice": 100000,
+      "changeLast48h": -32656,
+      "changeLast48hPercent": -29.5,
+      "updated": "2025-06-25T18:54:19.000Z",
+      "iconLink": "https://assets.tarkov.dev/5c0e842486f77443a74d2976-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Maska-1SCh_face_shield_(Killa_Edition)",
+      "containsItems": [],
+      "fleaMarketFee": 5748,
+      "sellFor": [
+        {
+          "source": "fence",
+          "price": 36876,
+          "currency": "RUB",
+          "priceRUB": 36876,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 45173,
+          "currency": "RUB",
+          "priceRUB": 45173,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "peacekeeper",
+          "price": 352,
+          "currency": "USD",
+          "priceRUB": 41485,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Peacekeeper",
+            "normalizedName": "peacekeeper"
+          }
+        },
+        {
+          "source": "ragman",
+          "price": 57157,
+          "currency": "RUB",
+          "priceRUB": 57157,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Ragman",
+            "normalizedName": "ragman"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 100000,
+          "currency": "RUB",
+          "priceRUB": 100000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "57bef4c42459772e8d35a53b",
+          "name": "Armored equipment",
+          "normalizedName": "armored-equipment"
+        },
+        {
+          "id": "543be5f84bdc2dd4348b456a",
+          "name": "Equipment",
+          "normalizedName": "equipment"
+        },
+        {
+          "id": "566162e44bdc2d3f298b4573",
+          "name": "Compound item",
+          "normalizedName": "compound-item"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [],
+      "bartersFor": []
+    },
+    {
+      "id": "5c94bbff86f7747ee735c08f",
+      "name": "TerraGroup Labs access keycard",
+      "shortName": "Access",
+      "avg24hPrice": 204327,
+      "lastLowPrice": 201500,
+      "changeLast48h": 2173,
+      "changeLast48hPercent": 1.08,
+      "updated": "2025-06-25T19:24:46.000Z",
+      "iconLink": "https://assets.tarkov.dev/5c94bbff86f7747ee735c08f-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/TerraGroup_Labs_access_keycard",
+      "containsItems": [],
+      "fleaMarketFee": 10838,
+      "sellFor": [
+        {
+          "source": "therapist",
+          "price": 63000,
+          "currency": "RUB",
+          "priceRUB": 63000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 40000,
+          "currency": "RUB",
+          "priceRUB": 40000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "peacekeeper",
+          "price": 381,
+          "currency": "USD",
+          "priceRUB": 45000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Peacekeeper",
+            "normalizedName": "peacekeeper"
+          }
+        },
+        {
+          "source": "mechanic",
+          "price": 56000,
+          "currency": "RUB",
+          "priceRUB": 56000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 201500,
+          "currency": "RUB",
+          "priceRUB": 201500,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5c164d2286f774194c5e69fa",
+          "name": "Keycard",
+          "normalizedName": "keycard"
+        },
+        {
+          "id": "543be5e94bdc2df1348b4568",
+          "name": "Key",
+          "normalizedName": "key"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "67da0223078f1947650d7bb7",
+          "level": 2,
+          "duration": 2400,
+          "requiredItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5c052fb986f7746b2101e909",
+                "name": "UHF RFID Reader",
+                "shortName": "RFIDR",
+                "iconLink": "https://assets.tarkov.dev/5c052fb986f7746b2101e909-icon.webp",
+                "avg24hPrice": 152598,
+                "lastLowPrice": 111111,
+                "changeLast48hPercent": -22.3
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "5c12613b86f7743bbe2c3f76",
+                "name": "Intelligence folder",
+                "shortName": "Intelligence",
+                "iconLink": "https://assets.tarkov.dev/5c12613b86f7743bbe2c3f76-icon.webp",
+                "avg24hPrice": 554324,
+                "lastLowPrice": 500000,
+                "changeLast48hPercent": 2.25
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 3,
+              "item": {
+                "id": "5c94bbff86f7747ee735c08f",
+                "name": "TerraGroup Labs access keycard",
+                "shortName": "Access"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fdf654e7600691aadf8",
+            "name": "Intelligence Center",
+            "normalizedName": "intelligence-center"
+          }
+        }
+      ],
+      "bartersFor": [
+        {
+          "id": "685944341e5cd8e7670bc95b8",
+          "level": 3,
+          "taskUnlock": null,
+          "trader": {
+            "id": "5a7c2eca46aef81a7ca2145d",
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          },
+          "requiredItems": [
+            {
+              "count": 2,
+              "item": {
+                "id": "5af04b6486f774195a3ebb49",
+                "name": "Pliers Elite",
+                "shortName": "Elite",
+                "iconLink": "https://assets.tarkov.dev/5af04b6486f774195a3ebb49-icon.webp",
+                "avg24hPrice": 19695,
+                "lastLowPrice": 17420,
+                "changeLast48hPercent": 1.99
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "619cbfccbedcde2f5b3f7bdd",
+                "name": "Pipe grip wrench",
+                "shortName": "PGW",
+                "iconLink": "https://assets.tarkov.dev/619cbfccbedcde2f5b3f7bdd-icon.webp",
+                "avg24hPrice": 85890,
+                "lastLowPrice": 84999,
+                "changeLast48hPercent": -1.12
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "619cbfeb6b8a1b37a54eebfa",
+                "name": "Bulbex cable cutter",
+                "shortName": "Bulbex",
+                "iconLink": "https://assets.tarkov.dev/619cbfeb6b8a1b37a54eebfa-icon.webp",
+                "avg24hPrice": 68876,
+                "lastLowPrice": 84000,
+                "changeLast48hPercent": -1.57
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5c94bbff86f7747ee735c08f",
+                "name": "TerraGroup Labs access keycard",
+                "shortName": "Access"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5ca20ee186f774799474abc2",
+      "name": "Vulkan-5 LShZ-5 bulletproof helmet (Black)",
+      "shortName": "Vulkan-5",
+      "avg24hPrice": null,
+      "lastLowPrice": null,
+      "changeLast48h": null,
+      "changeLast48hPercent": null,
+      "updated": "2025-06-25T11:53:33.000Z",
+      "iconLink": "https://assets.tarkov.dev/5ca20ee186f774799474abc2-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Vulkan-5_LShZ-5_bulletproof_helmet_(Black)",
+      "containsItems": [],
+      "fleaMarketFee": null,
+      "sellFor": [
+        {
+          "source": "fence",
+          "price": 66196,
+          "currency": "RUB",
+          "priceRUB": 66196,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 81090,
+          "currency": "RUB",
+          "priceRUB": 81090,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "peacekeeper",
+          "price": 631,
+          "currency": "USD",
+          "priceRUB": 74470,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Peacekeeper",
+            "normalizedName": "peacekeeper"
+          }
+        },
+        {
+          "source": "ragman",
+          "price": 102603,
+          "currency": "RUB",
+          "priceRUB": 102603,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Ragman",
+            "normalizedName": "ragman"
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5a341c4086f77401f2541505",
+          "name": "Headwear",
+          "normalizedName": "headwear"
+        },
+        {
+          "id": "57bef4c42459772e8d35a53b",
+          "name": "Armored equipment",
+          "normalizedName": "armored-equipment"
+        },
+        {
+          "id": "543be5f84bdc2dd4348b456a",
+          "name": "Equipment",
+          "normalizedName": "equipment"
+        },
+        {
+          "id": "566162e44bdc2d3f298b4573",
+          "name": "Compound item",
+          "normalizedName": "compound-item"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [],
+      "bartersFor": [
+        {
+          "id": "685943f11e5cd8e7670bae9f1",
+          "level": 4,
+          "taskUnlock": null,
+          "trader": {
+            "id": "5ac3b934156ae10c4430e83c",
+            "name": "Ragman",
+            "normalizedName": "ragman"
+          },
+          "requiredItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "57347ca924597744596b4e71",
+                "name": "Graphics card",
+                "shortName": "GPU",
+                "iconLink": "https://assets.tarkov.dev/57347ca924597744596b4e71-icon.webp",
+                "avg24hPrice": 566736,
+                "lastLowPrice": 519999,
+                "changeLast48hPercent": 1.14
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5ca20ee186f774799474abc2",
+                "name": "Vulkan-5 LShZ-5 bulletproof helmet (Black)",
+                "shortName": "Vulkan-5"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5d1b376e86f774252519444e",
+      "name": "Bottle of Fierce Hatchling moonshine",
+      "shortName": "Moonshine",
+      "avg24hPrice": 624142,
+      "lastLowPrice": 618000,
+      "changeLast48h": 8047,
+      "changeLast48hPercent": 1.31,
+      "updated": "2025-06-25T19:02:43.000Z",
+      "iconLink": "https://assets.tarkov.dev/5d1b376e86f774252519444e-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Bottle_of_Fierce_Hatchling_moonshine",
+      "containsItems": [],
+      "fleaMarketFee": 38257,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 100000,
+          "currency": "RUB",
+          "priceRUB": 100000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 126000,
+          "currency": "RUB",
+          "priceRUB": 126000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 80000,
+          "currency": "RUB",
+          "priceRUB": 80000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 120000,
+          "currency": "RUB",
+          "priceRUB": 120000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 618000,
+          "currency": "RUB",
+          "priceRUB": 618000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448e8d64bdc2dce718b4568",
+          "name": "Drink",
+          "normalizedName": "drink"
+        },
+        {
+          "id": "543be6674bdc2df1348b4569",
+          "name": "Food and drink",
+          "normalizedName": "food-and-drink"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "5d5c1fd4d582a500650132f0",
+          "level": 1,
+          "duration": 11000,
+          "requiredItems": [
+            {
+              "count": 2,
+              "item": {
+                "id": "59e3577886f774176a362503",
+                "name": "Pack of sugar",
+                "shortName": "Sugar",
+                "iconLink": "https://assets.tarkov.dev/59e3577886f774176a362503-icon.webp",
+                "avg24hPrice": 151507,
+                "lastLowPrice": 140000,
+                "changeLast48hPercent": -0.74
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "5d1b33a686f7742523398398",
+                "name": "Canister with purified water",
+                "shortName": "Superwater",
+                "iconLink": "https://assets.tarkov.dev/5d1b33a686f7742523398398-icon.webp",
+                "avg24hPrice": 299805,
+                "lastLowPrice": 289999,
+                "changeLast48hPercent": -0.79
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5d1b376e86f774252519444e",
+                "name": "Bottle of Fierce Hatchling moonshine",
+                "shortName": "Moonshine"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d494a3f5b56502f18c98a0e",
+            "name": "Booze Generator",
+            "normalizedName": "booze-generator"
+          }
+        }
+      ],
+      "bartersFor": []
+    },
+    {
+      "id": "5d403f9186f7743cac3f229b",
+      "name": "Bottle of Dan Jackiel whiskey",
+      "shortName": "Whiskey",
+      "avg24hPrice": 81244,
+      "lastLowPrice": 85000,
+      "changeLast48h": -5145,
+      "changeLast48hPercent": -5.96,
+      "updated": "2025-06-25T19:03:58.000Z",
+      "iconLink": "https://assets.tarkov.dev/5d403f9186f7743cac3f229b-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Bottle_of_Dan_Jackiel_whiskey",
+      "containsItems": [],
+      "fleaMarketFee": 4478,
+      "sellFor": [
+        {
+          "source": "therapist",
+          "price": 31500,
+          "currency": "RUB",
+          "priceRUB": 31500,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 20000,
+          "currency": "RUB",
+          "priceRUB": 20000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 30000,
+          "currency": "RUB",
+          "priceRUB": 30000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 85000,
+          "currency": "RUB",
+          "priceRUB": 85000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448e8d64bdc2dce718b4568",
+          "name": "Drink",
+          "normalizedName": "drink"
+        },
+        {
+          "id": "543be6674bdc2df1348b4569",
+          "name": "Food and drink",
+          "normalizedName": "food-and-drink"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "600ab8e3e4022c380a726088",
+          "level": 3,
+          "duration": 6400,
+          "requiredItems": [
+            {
+              "count": 2,
+              "item": {
+                "id": "5448fee04bdc2dbc018b4567",
+                "name": "Bottle of water (0.6L)",
+                "shortName": "Water",
+                "iconLink": "https://assets.tarkov.dev/5448fee04bdc2dbc018b4567-icon.webp",
+                "avg24hPrice": 25215,
+                "lastLowPrice": 20420,
+                "changeLast48hPercent": -4.63
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5d40407c86f774318526545a",
+                "name": "Bottle of Tarkovskaya vodka",
+                "shortName": "Vodka",
+                "iconLink": "https://assets.tarkov.dev/5d40407c86f774318526545a-icon.webp",
+                "avg24hPrice": 54672,
+                "lastLowPrice": 48000,
+                "changeLast48hPercent": -15.14
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "57505f6224597709a92585a9",
+                "name": "Alyonka chocolate bar",
+                "shortName": "Alyonka",
+                "iconLink": "https://assets.tarkov.dev/57505f6224597709a92585a9-icon.webp",
+                "avg24hPrice": 84827,
+                "lastLowPrice": 60000,
+                "changeLast48hPercent": -0.38
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "5bc9be8fd4351e00334cae6e",
+                "name": "42 Signature Blend English Tea",
+                "shortName": "42",
+                "iconLink": "https://assets.tarkov.dev/5bc9be8fd4351e00334cae6e-icon.webp",
+                "avg24hPrice": 26239,
+                "lastLowPrice": 21111,
+                "changeLast48hPercent": -21.28
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "5d1b385e86f774252167b98a",
+                "name": "Water filter",
+                "shortName": "WFilter",
+                "iconLink": "https://assets.tarkov.dev/5d1b385e86f774252167b98a-icon.webp",
+                "avg24hPrice": 263138,
+                "lastLowPrice": 188888,
+                "changeLast48hPercent": -5.12
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 3,
+              "item": {
+                "id": "5d403f9186f7743cac3f229b",
+                "name": "Bottle of Dan Jackiel whiskey",
+                "shortName": "Whiskey"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fd1654e76006732bf2e",
+            "name": "Nutrition Unit",
+            "normalizedName": "nutrition-unit"
+          }
+        }
+      ],
+      "bartersFor": []
+    },
+    {
+      "id": "5d40407c86f774318526545a",
+      "name": "Bottle of Tarkovskaya vodka",
+      "shortName": "Vodka",
+      "avg24hPrice": 54672,
+      "lastLowPrice": 48000,
+      "changeLast48h": -9755,
+      "changeLast48hPercent": -15.14,
+      "updated": "2025-06-25T19:19:09.000Z",
+      "iconLink": "https://assets.tarkov.dev/5d40407c86f774318526545a-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Bottle_of_Tarkovskaya_vodka",
+      "containsItems": [],
+      "fleaMarketFee": 2560,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 12500,
+          "currency": "RUB",
+          "priceRUB": 12500,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 15750,
+          "currency": "RUB",
+          "priceRUB": 15750,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 10000,
+          "currency": "RUB",
+          "priceRUB": 10000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 15000,
+          "currency": "RUB",
+          "priceRUB": 15000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 48000,
+          "currency": "RUB",
+          "priceRUB": 48000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448e8d64bdc2dce718b4568",
+          "name": "Drink",
+          "normalizedName": "drink"
+        },
+        {
+          "id": "543be6674bdc2df1348b4569",
+          "name": "Food and drink",
+          "normalizedName": "food-and-drink"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "5dc1f634ee5f2440a9272dc7",
+          "level": 3,
+          "duration": 5750,
+          "requiredItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5d1b376e86f774252519444e",
+                "name": "Bottle of Fierce Hatchling moonshine",
+                "shortName": "Moonshine",
+                "iconLink": "https://assets.tarkov.dev/5d1b376e86f774252519444e-icon.webp",
+                "avg24hPrice": 624142,
+                "lastLowPrice": 618000,
+                "changeLast48hPercent": 1.31
+              }
+            },
+            {
+              "count": 5,
+              "item": {
+                "id": "5448fee04bdc2dbc018b4567",
+                "name": "Bottle of water (0.6L)",
+                "shortName": "Water",
+                "iconLink": "https://assets.tarkov.dev/5448fee04bdc2dbc018b4567-icon.webp",
+                "avg24hPrice": 25215,
+                "lastLowPrice": 20420,
+                "changeLast48hPercent": -4.63
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 10,
+              "item": {
+                "id": "5d40407c86f774318526545a",
+                "name": "Bottle of Tarkovskaya vodka",
+                "shortName": "Vodka"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fd1654e76006732bf2e",
+            "name": "Nutrition Unit",
+            "normalizedName": "nutrition-unit"
+          }
+        }
+      ],
+      "bartersFor": []
+    },
+    {
+      "id": "5ed5160a87bb8443d10680b5",
+      "name": "Meldonin injector",
+      "shortName": "Meldonin",
+      "avg24hPrice": 66990,
+      "lastLowPrice": 66665,
+      "changeLast48h": 1458,
+      "changeLast48hPercent": 2.23,
+      "updated": "2025-06-25T19:16:49.000Z",
+      "iconLink": "https://assets.tarkov.dev/5ed5160a87bb8443d10680b5-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Meldonin_injector",
+      "containsItems": [],
+      "fleaMarketFee": 3689,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 27950,
+          "currency": "RUB",
+          "priceRUB": 27950,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 35217,
+          "currency": "RUB",
+          "priceRUB": 35217,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 22360,
+          "currency": "RUB",
+          "priceRUB": 22360,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 27391,
+          "currency": "RUB",
+          "priceRUB": 27391,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 33540,
+          "currency": "RUB",
+          "priceRUB": 33540,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 66665,
+          "currency": "RUB",
+          "priceRUB": 66665,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448f3a64bdc2d60728b456a",
+          "name": "Stimulant",
+          "normalizedName": "stimulant"
+        },
+        {
+          "id": "543be5664bdc2dd4348b4569",
+          "name": "Meds",
+          "normalizedName": "meds"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [],
+      "bartersFor": []
+    },
+    {
+      "id": "5ed51652f6c34d2cc26336a1",
+      "name": "M.U.L.E. stimulant injector",
+      "shortName": "M.U.L.E.",
+      "avg24hPrice": 153661,
+      "lastLowPrice": 150000,
+      "changeLast48h": -9850,
+      "changeLast48hPercent": -6.02,
+      "updated": "2025-06-25T19:20:42.000Z",
+      "iconLink": "https://assets.tarkov.dev/5ed51652f6c34d2cc26336a1-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/M.U.L.E._stimulant_injector",
+      "containsItems": [],
+      "fleaMarketFee": 9759,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 21775,
+          "currency": "RUB",
+          "priceRUB": 21775,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 27436,
+          "currency": "RUB",
+          "priceRUB": 27436,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 17420,
+          "currency": "RUB",
+          "priceRUB": 17420,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 21339,
+          "currency": "RUB",
+          "priceRUB": 21339,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 26130,
+          "currency": "RUB",
+          "priceRUB": 26130,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 150000,
+          "currency": "RUB",
+          "priceRUB": 150000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448f3a64bdc2d60728b456a",
+          "name": "Stimulant",
+          "normalizedName": "stimulant"
+        },
+        {
+          "id": "543be5664bdc2dd4348b4569",
+          "name": "Meds",
+          "normalizedName": "meds"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "6012ee7e44a0465ee67a58de",
+          "level": 2,
+          "duration": 5500,
+          "requiredItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5c0e533786f7747fa23f4d47",
+                "name": "Zagustin hemostatic drug injector",
+                "shortName": "Zagustin",
+                "iconLink": "https://assets.tarkov.dev/5c0e533786f7747fa23f4d47-icon.webp",
+                "avg24hPrice": 41211,
+                "lastLowPrice": 39999,
+                "changeLast48hPercent": -5.86
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "544fb3f34bdc2d03748b456a",
+                "name": "Morphine injector",
+                "shortName": "Morphine",
+                "iconLink": "https://assets.tarkov.dev/544fb3f34bdc2d03748b456a-icon.webp",
+                "avg24hPrice": 15893,
+                "lastLowPrice": 15444,
+                "changeLast48hPercent": -1.98
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5751435d24597720a27126d1",
+                "name": "Can of Max Energy energy drink",
+                "shortName": "MaxEnergy",
+                "iconLink": "https://assets.tarkov.dev/5751435d24597720a27126d1-icon.webp",
+                "avg24hPrice": 30300,
+                "lastLowPrice": 22000,
+                "changeLast48hPercent": -1.8
+              }
+            },
+            {
+              "count": 2,
+              "item": {
+                "id": "5d1b3a5d86f774252167ba22",
+                "name": "Pile of meds",
+                "shortName": "Meds",
+                "iconLink": "https://assets.tarkov.dev/5d1b3a5d86f774252167ba22-icon.webp",
+                "avg24hPrice": 40151,
+                "lastLowPrice": 36000,
+                "changeLast48hPercent": -4.09
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 1,
+              "item": {
+                "id": "5ed51652f6c34d2cc26336a1",
+                "name": "M.U.L.E. stimulant injector",
+                "shortName": "M.U.L.E."
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fcd654e7668ec2ec322",
+            "name": "Medstation",
+            "normalizedName": "medstation"
+          }
+        }
+      ],
+      "bartersFor": []
+    },
+    {
+      "id": "5fca13ca637ee0341a484f46",
+      "name": "SJ9 TGLabs combat stimulant injector",
+      "shortName": "SJ9",
+      "avg24hPrice": 66330,
+      "lastLowPrice": 79999,
+      "changeLast48h": -4579,
+      "changeLast48hPercent": -6.46,
+      "updated": "2025-06-25T19:01:52.000Z",
+      "iconLink": "https://assets.tarkov.dev/5fca13ca637ee0341a484f46-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/SJ9_TGLabs_combat_stimulant_injector",
+      "containsItems": [],
+      "fleaMarketFee": 5081,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 44850,
+          "currency": "RUB",
+          "priceRUB": 44850,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 56511,
+          "currency": "RUB",
+          "priceRUB": 56511,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 35880,
+          "currency": "RUB",
+          "priceRUB": 35880,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 43953,
+          "currency": "RUB",
+          "priceRUB": 43953,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 53820,
+          "currency": "RUB",
+          "priceRUB": 53820,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 79999,
+          "currency": "RUB",
+          "priceRUB": 79999,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448f3a64bdc2d60728b456a",
+          "name": "Stimulant",
+          "normalizedName": "stimulant"
+        },
+        {
+          "id": "543be5664bdc2dd4348b4569",
+          "name": "Meds",
+          "normalizedName": "meds"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [],
+      "bartersFor": []
+    },
+    {
+      "id": "601948682627df266209af05",
+      "name": "UVSR Taiga-1 survival machete",
+      "shortName": "Taiga-1",
+      "avg24hPrice": 16934287,
+      "lastLowPrice": 16666666,
+      "changeLast48h": -476682,
+      "changeLast48hPercent": -2.74,
+      "updated": "2025-06-25T19:00:43.000Z",
+      "iconLink": "https://assets.tarkov.dev/601948682627df266209af05-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/UVSR_Taiga-1_survival_machete",
+      "containsItems": [],
+      "fleaMarketFee": 3160727,
+      "sellFor": [
+        {
+          "source": "fence",
+          "price": 333000,
+          "currency": "RUB",
+          "priceRUB": 333000,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 499500,
+          "currency": "RUB",
+          "priceRUB": 499500,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 16666666,
+          "currency": "RUB",
+          "priceRUB": 16666666,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5447e1d04bdc2dff2f8b4567",
+          "name": "Knife",
+          "normalizedName": "knife"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [],
+      "bartersFor": []
+    },
+    {
+      "id": "60194943740c5d77f6705eea",
+      "name": "5.56x45mm MK 318 Mod 0 (SOST)",
+      "shortName": "SOST",
+      "avg24hPrice": 1820,
+      "lastLowPrice": 1850,
+      "changeLast48h": -77,
+      "changeLast48hPercent": -4.06,
+      "updated": "2025-06-25T18:52:40.000Z",
+      "iconLink": "https://assets.tarkov.dev/60194943740c5d77f6705eea-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/5.56x45mm_MK_318_Mod_0_(SOST)",
+      "containsItems": [],
+      "fleaMarketFee": 167,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 148,
+          "currency": "RUB",
+          "priceRUB": 148,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 118,
+          "currency": "RUB",
+          "priceRUB": 118,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 145,
+          "currency": "RUB",
+          "priceRUB": 145,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "peacekeeper",
+          "price": 1,
+          "currency": "USD",
+          "priceRUB": 133,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Peacekeeper",
+            "normalizedName": "peacekeeper"
+          }
+        },
+        {
+          "source": "mechanic",
+          "price": 165,
+          "currency": "RUB",
+          "priceRUB": 165,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Mechanic",
+            "normalizedName": "mechanic"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 1850,
+          "currency": "RUB",
+          "priceRUB": 1850,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5485a8684bdc2da71d8b4567",
+          "name": "Ammo",
+          "normalizedName": "ammo"
+        },
+        {
+          "id": "5661632d4bdc2d903d8b456b",
+          "name": "Stackable item",
+          "normalizedName": "stackable-item"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [
+        {
+          "id": "5d78d81757c9b8484a2bcb99",
+          "level": 2,
+          "duration": 6250,
+          "requiredItems": [
+            {
+              "count": 2,
+              "item": {
+                "id": "590c5a7286f7747884343aea",
+                "name": "Gunpowder \"Kite\"",
+                "shortName": "Kite",
+                "iconLink": "https://assets.tarkov.dev/590c5a7286f7747884343aea-icon.webp",
+                "avg24hPrice": 46367,
+                "lastLowPrice": 42000,
+                "changeLast48hPercent": -10.86
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "5d6fc78386f77449d825f9dc",
+                "name": "Gunpowder \"Eagle\"",
+                "shortName": "Eagle",
+                "iconLink": "https://assets.tarkov.dev/5d6fc78386f77449d825f9dc-icon.webp",
+                "avg24hPrice": 97247,
+                "lastLowPrice": 86000,
+                "changeLast48hPercent": -13.17
+              }
+            },
+            {
+              "count": 1,
+              "item": {
+                "id": "5af04b6486f774195a3ebb49",
+                "name": "Pliers Elite",
+                "shortName": "Elite",
+                "iconLink": "https://assets.tarkov.dev/5af04b6486f774195a3ebb49-icon.webp",
+                "avg24hPrice": 19695,
+                "lastLowPrice": 17420,
+                "changeLast48hPercent": 1.99
+              }
+            }
+          ],
+          "rewardItems": [
+            {
+              "count": 150,
+              "item": {
+                "id": "60194943740c5d77f6705eea",
+                "name": "5.56x45mm MK 318 Mod 0 (SOST)",
+                "shortName": "SOST"
+              }
+            }
+          ],
+          "station": {
+            "id": "5d484fda654e7600681d9315",
+            "name": "Workbench",
+            "normalizedName": "workbench"
+          }
+        }
+      ],
+      "bartersFor": []
+    },
+    {
+      "id": "637b60c3b7afa97bfc3d7001",
+      "name": "Obdolbos 2 cocktail injector",
+      "shortName": "Dolbos 2",
+      "avg24hPrice": 67722,
+      "lastLowPrice": 62000,
+      "changeLast48h": -9285,
+      "changeLast48hPercent": -12.06,
+      "updated": "2025-06-25T19:24:47.000Z",
+      "iconLink": "https://assets.tarkov.dev/637b60c3b7afa97bfc3d7001-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Obdolbos_2_cocktail_injector",
+      "containsItems": [],
+      "fleaMarketFee": 3858,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 33500,
+          "currency": "RUB",
+          "priceRUB": 33500,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 42210,
+          "currency": "RUB",
+          "priceRUB": 42210,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 26800,
+          "currency": "RUB",
+          "priceRUB": 26800,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 32830,
+          "currency": "RUB",
+          "priceRUB": 32830,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 40200,
+          "currency": "RUB",
+          "priceRUB": 40200,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 62000,
+          "currency": "RUB",
+          "priceRUB": 62000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448f3a64bdc2d60728b456a",
+          "name": "Stimulant",
+          "normalizedName": "stimulant"
+        },
+        {
+          "id": "543be5664bdc2dd4348b4569",
+          "name": "Meds",
+          "normalizedName": "meds"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [],
+      "bartersFor": []
+    },
+    {
+      "id": "637b612fb7afa97bfc3d7005",
+      "name": "SJ12 TGLabs combat stimulant injector",
+      "shortName": "SJ12",
+      "avg24hPrice": 66255,
+      "lastLowPrice": 65000,
+      "changeLast48h": 6671,
+      "changeLast48hPercent": 11.2,
+      "updated": "2025-06-25T18:58:30.000Z",
+      "iconLink": "https://assets.tarkov.dev/637b612fb7afa97bfc3d7005-icon.webp",
+      "wikiLink": "https://escapefromtarkov.fandom.com/wiki/SJ12_TGLabs_combat_stimulant_injector",
+      "containsItems": [],
+      "fleaMarketFee": 3421,
+      "sellFor": [
+        {
+          "source": "prapor",
+          "price": 20500,
+          "currency": "RUB",
+          "priceRUB": 20500,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Prapor",
+            "normalizedName": "prapor"
+          }
+        },
+        {
+          "source": "therapist",
+          "price": 25830,
+          "currency": "RUB",
+          "priceRUB": 25830,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Therapist",
+            "normalizedName": "therapist"
+          }
+        },
+        {
+          "source": "fence",
+          "price": 16400,
+          "currency": "RUB",
+          "priceRUB": 16400,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Fence",
+            "normalizedName": "fence"
+          }
+        },
+        {
+          "source": "skier",
+          "price": 20090,
+          "currency": "RUB",
+          "priceRUB": 20090,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Skier",
+            "normalizedName": "skier"
+          }
+        },
+        {
+          "source": "jaeger",
+          "price": 24600,
+          "currency": "RUB",
+          "priceRUB": 24600,
+          "vendor": {
+            "minTraderLevel": 1,
+            "buyLimit": null,
+            "name": "Jaeger",
+            "normalizedName": "jaeger"
+          }
+        },
+        {
+          "source": "fleaMarket",
+          "price": 65000,
+          "currency": "RUB",
+          "priceRUB": 65000,
+          "vendor": {
+            "name": "Flea Market",
+            "normalizedName": "flea-market",
+            "foundInRaidRequired": false
+          }
+        }
+      ],
+      "categories": [
+        {
+          "id": "5448f3a64bdc2d60728b456a",
+          "name": "Stimulant",
+          "normalizedName": "stimulant"
+        },
+        {
+          "id": "543be5664bdc2dd4348b4569",
+          "name": "Meds",
+          "normalizedName": "meds"
+        },
+        {
+          "id": "54009119af1c881c07000029",
+          "name": "Item",
+          "normalizedName": "item"
+        }
+      ],
+      "craftsFor": [],
+      "bartersFor": []
+    }
+  ],
+  "timestamp": 1750879733688
+}

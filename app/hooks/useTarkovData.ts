@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { ItemPrice, ApiItem, GameMode } from '../types/tarkov'
 import { 
   isFleaMarketRestricted, 
@@ -20,66 +20,95 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
   const [pvpRequiredItemsData, setPvpRequiredItemsData] = useState<Map<string, ApiItem>>(new Map())
   const [pveRequiredItemsData, setPveRequiredItemsData] = useState<Map<string, ApiItem>>(new Map())
 
+  // Add loading state management
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [cacheTimestamp, setCacheTimestamp] = useState<number | null>(null)
+  const fetchPromiseRef = useRef<Promise<void> | null>(null)
+
   const fetchPrices = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    
-    try {
-      // Call our new cached API route instead of external APIs
-      const response = await fetch(`/api/tarkov-data?gameMode=${gameMode}`)
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      
-      if (data.error) {
-        throw new Error(data.error)
-      }
-      
-      // Convert the response data back to our expected formats
-      const mappedPrices = data.mappedPrices
-      const pvpPriceCacheData = new Map(Object.entries(data.pvpPriceCache).map(([k, v]) => [k, v as number]))
-      const pvePriceCacheData = new Map(Object.entries(data.pvePriceCache).map(([k, v]) => [k, v as number]))
-      const pvpRequiredData = new Map(Object.entries(data.pvpRequiredItemsData).map(([k, v]) => [k, v as ApiItem]))
-      const pveRequiredData = new Map(Object.entries(data.pveRequiredItemsData).map(([k, v]) => [k, v as ApiItem]))
+    // Prevent duplicate requests
+    if (fetchPromiseRef.current) {
+      return fetchPromiseRef.current
+    }
 
-      // Store both caches
-      setPvpPriceCache(pvpPriceCacheData)
-      setPvePriceCache(pvePriceCacheData)
-      setPvpRequiredItemsData(pvpRequiredData)
-      setPveRequiredItemsData(pveRequiredData)
+    const fetchPromise = (async () => {
+      setLoading(true)
+      setError(null)
+      
+      try {
+        // Check if we have recent data before making API call
+        if (cacheTimestamp && Date.now() - cacheTimestamp < 60000) { // 1 minute client cache
+          setLoading(false)
+          return
+        }
 
-      // Set initial caches based on current game mode
-      const currentPriceCache = gameMode === 'pvp' ? pvpPriceCacheData : pvePriceCacheData
-      const currentRequiredData = gameMode === 'pvp' ? pvpRequiredData : pveRequiredData
-      setItemPriceCache(currentPriceCache)
-      setRequiredItemsData(currentRequiredData)
-
-      // Calculate cheapest acquisition methods for flea market restricted items using current game mode
-      for (const item of mappedPrices) {
-        const isRestricted = isFleaMarketRestricted(item)
+        // Call our new cached API route instead of external APIs
+        const response = await fetch(`/api/tarkov-data?gameMode=${gameMode}`, {
+          // Add cache headers for browser caching
+          headers: {
+            'Cache-Control': 'max-age=300' // 5 minute browser cache
+          }
+        })
         
-        if (isRestricted || (item.pvpPrice === 0 && item.pvePrice === 0)) {
-          // Calculate for current game mode
-          const cheapestMethod = await findCheapestAcquisitionMethod(item, currentPriceCache)
-          item.cheapestAcquisitionMethod = cheapestMethod
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`)
         }
         
-        // Set the correct gameMode and avg24hPrice based on current mode
-        item.gameMode = gameMode
-        item.avg24hPrice = (gameMode === 'pvp' ? item.pvpPrice : item.pvePrice) || 0
-      }
+        const data = await response.json()
+        
+        if (data.error) {
+          throw new Error(data.error)
+        }
+        
+        // Convert the response data back to our expected formats
+        const mappedPrices = data.mappedPrices
+        const pvpPriceCacheData = new Map(Object.entries(data.pvpPriceCache).map(([k, v]) => [k, v as number]))
+        const pvePriceCacheData = new Map(Object.entries(data.pvePriceCache).map(([k, v]) => [k, v as number]))
+        const pvpRequiredData = new Map(Object.entries(data.pvpRequiredItemsData).map(([k, v]) => [k, v as ApiItem]))
+        const pveRequiredData = new Map(Object.entries(data.pveRequiredItemsData).map(([k, v]) => [k, v as ApiItem]))
 
-      setItemPrices(mappedPrices)
-      setLastUpdated(new Date())
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred')
-    } finally {
-      setLoading(false)
-    }
-  }, [gameMode]) // Refetch when game mode changes
+        // Store both caches
+        setPvpPriceCache(pvpPriceCacheData)
+        setPvePriceCache(pvePriceCacheData)
+        setPvpRequiredItemsData(pvpRequiredData)
+        setPveRequiredItemsData(pveRequiredData)
+
+        // Set initial caches based on current game mode
+        const currentPriceCache = gameMode === 'pvp' ? pvpPriceCacheData : pvePriceCacheData
+        const currentRequiredData = gameMode === 'pvp' ? pvpRequiredData : pveRequiredData
+        setItemPriceCache(currentPriceCache)
+        setRequiredItemsData(currentRequiredData)
+
+        // Calculate cheapest acquisition methods for flea market restricted items using current game mode
+        for (const item of mappedPrices) {
+          const isRestricted = isFleaMarketRestricted(item)
+          
+          if (isRestricted || (item.pvpPrice === 0 && item.pvePrice === 0)) {
+            // Calculate for current game mode
+            const cheapestMethod = await findCheapestAcquisitionMethod(item, currentPriceCache)
+            item.cheapestAcquisitionMethod = cheapestMethod
+          }
+          
+          // Set the correct gameMode and avg24hPrice based on current mode
+          item.gameMode = gameMode
+          item.avg24hPrice = (gameMode === 'pvp' ? item.pvpPrice : item.pvePrice) || 0
+        }
+
+        setItemPrices(mappedPrices)
+        setLastUpdated(new Date())
+        setCacheTimestamp(Date.now())
+        setIsInitialLoad(false)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred')
+      } finally {
+        setLoading(false)
+        fetchPromiseRef.current = null
+      }
+    })()
+
+    fetchPromiseRef.current = fetchPromise
+    return fetchPromise
+  }, [gameMode, cacheTimestamp]) // Add cacheTimestamp to dependencies
 
   useEffect(() => {
     fetchPrices()
@@ -222,6 +251,18 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
     return questsWithOrder.map(({ questName, items }) => [questName, items] as [string, ItemPrice[]])
   }
 
+  // Cache invalidation function
+  const invalidateCache = useCallback(() => {
+    setCacheTimestamp(null)
+    fetchPromiseRef.current = null
+  }, [])
+
+  // Force refresh function
+  const forceRefresh = useCallback(async () => {
+    invalidateCache()
+    await fetchPrices()
+  }, [invalidateCache, fetchPrices])
+
   return {
     // State
     itemPrices,
@@ -238,6 +279,12 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
     
     // Functions
     fetchPrices,
-    groupItemsByQuest
+    groupItemsByQuest,
+    
+    // Cache management
+    invalidateCache,
+    forceRefresh,
+    isInitialLoad,
+    cacheTimestamp
   }
 } 

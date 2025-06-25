@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/button'
-import { Loader2, RefreshCw } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { GameMode } from './types/tarkov'
 
 // Import our modular components
@@ -23,11 +22,12 @@ export default function TarkovPriceChecker() {
     error,
     lastUpdated,
     itemPriceCache,
-    requiredItemsData,
     grandTotal,
-    fetchPrices,
+    overallPriceChange,
     groupItemsByQuest,
-    overallPriceChange
+    requiredItemsData,
+    isInitialLoad,
+    cacheTimestamp
   } = useTarkovData(gameMode)
 
   const toggleQuestExpansion = (questName: string) => {
@@ -39,6 +39,30 @@ export default function TarkovPriceChecker() {
     }
     setExpandedQuests(newExpanded)
   }
+
+  // Data availability helper
+  const getDataStatus = () => {
+    if (isInitialLoad && !lastUpdated) {
+      return { 
+        showData: false,
+        isUpdating: false
+      }
+    }
+    
+    if (!lastUpdated) {
+      return { 
+        showData: false,
+        isUpdating: false
+      }
+    }
+
+    return {
+      showData: true,
+      isUpdating: loading
+    }
+  }
+
+  const dataStatus = getDataStatus()
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
@@ -68,62 +92,48 @@ export default function TarkovPriceChecker() {
               </div>
             </div>
 
-            {/* Right side - Controls */}
-            <div className="flex items-stretch sm:items-center gap-3 sm:gap-4">
-              {/* Game Mode Toggle */}
-              <div className="flex items-center gap-3">
-                <ToggleGroup value={gameMode} onValueChange={(value) => setGameMode(value as GameMode)}>
-                  <ToggleGroupItem value="pvp">
-                    PvP
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="pve">
-                    PvE
-                  </ToggleGroupItem>
-                </ToggleGroup>
+                                        {/* Right side - Controls */}
+              <div className="flex items-stretch sm:items-center gap-3 sm:gap-4">
+                {/* Game Mode Toggle */}
+                <div className="flex items-center gap-3">
+                  <ToggleGroup value={gameMode} onValueChange={(value) => setGameMode(value as GameMode)}>
+                    <ToggleGroupItem value="pvp">
+                      PvP
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="pve">
+                      PvE
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
               </div>
-              
-              {/* Refresh Button */}
-              <Button 
-                onClick={fetchPrices} 
-                disabled={loading}
-                className="bg-neutral-900 hover:bg-neutral-800 text-white w-auto"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span className="hidden sm:inline">Loading...</span>
-                    <span className="sm:hidden">Loading</span>
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Refresh</span>
-                    <span className="sm:hidden">Refresh</span>
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
 
           {/* Status Row */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-            
-            {lastUpdated && (
+            <div className="flex items-center gap-2">
               <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-500">
-                Last updated: {lastUpdated.toLocaleTimeString()} • {gameMode.toUpperCase()} Mode
+                {lastUpdated ? `Last updated: ${lastUpdated.toLocaleString()}` : 'No data'}
               </p>
+            </div>
+            {dataStatus.isUpdating && (
+              <div className="flex items-center gap-2 text-xs">
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                <span className="text-neutral-600">Updating...</span>
+              </div>
             )}
           </div>
         </div>
         
-        {/* Summary */}
-        <TarkovSummary
-          grandTotal={grandTotal}
-          totalItems={itemPrices.length}
-          restrictedItems={itemPrices.filter(item => isFleaMarketRestricted(item)).length}
-          overallPriceChange={overallPriceChange}
-          loading={loading}
-        />
+        {/* Summary - Show if we have data */}
+        {dataStatus.showData && itemPrices.length > 0 && (
+          <TarkovSummary
+            grandTotal={grandTotal}
+            totalItems={itemPrices.length}
+            restrictedItems={itemPrices.filter(item => isFleaMarketRestricted(item)).length}
+            overallPriceChange={overallPriceChange}
+            loading={loading}
+          />
+        )}
 
         {/* Error Display */}
         {error && (
@@ -134,21 +144,21 @@ export default function TarkovPriceChecker() {
           </div>
         )}
 
-        {/* Loading State */}
-        {loading && (
+        {/* Loading State - Only show when we have no data */}
+        {!dataStatus.showData && (
           <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-8 text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-neutral-600 dark:text-neutral-400" />
             <p className="text-neutral-700 dark:text-neutral-300 font-medium mb-2">
-              Loading price data...
+              {loading ? 'Loading initial data...' : 'No data available'}
             </p>
             <p className="text-sm text-neutral-500 dark:text-neutral-500">
-              Fetching data from Tarkov.dev API
+              {loading ? 'Fetching data from Tarkov.dev API' : 'Unable to load price data'}
             </p>
           </div>
         )}
 
-        {/* Quest Tables */}
-        {!loading && (
+        {/* Quest Tables - Always show data if available */}
+        {dataStatus.showData && itemPrices.length > 0 && (
           <div className="space-y-4 sm:space-y-6">
             
             {/* Quest Tables */}
@@ -186,8 +196,7 @@ export default function TarkovPriceChecker() {
             </div>
             <div className="hidden sm:block text-neutral-400">•</div>
             <div className="text-neutral-600 dark:text-neutral-400">
-              <span className="font-medium">Real-time pricing</span> • 
-              <span className="font-medium">Trader reset tracking</span>
+              <span className="font-medium">Real-time pricing</span>
             </div>
           </div>
         </div>
