@@ -207,4 +207,14 @@ export const QUEST_WIKI_LINKS: Record<string, string> = {
   'Profit Retention': 'https://escapefromtarkov.fandom.com/wiki/Profit_Retention',
   'A Life Lesson': 'https://escapefromtarkov.fandom.com/wiki/A_Life_Lesson',
   'Consolation Prize': 'https://escapefromtarkov.fandom.com/wiki/Consolation_Prize'
-} 
+}
+
+// Cache duration constants (match Tarkov.dev's actual update frequency)
+export const CACHE_DURATIONS = {
+  PRICE_DATA: 5 * 60 * 1000, // 5 minutes - Tarkov.dev updates price data every 5 minutes
+  GENERAL: 5 * 60 * 1000, // 5 minutes - general cache (matches Tarkov.dev GraphQL cache)
+  QUEST_DATA: 24 * 60 * 60 * 1000, // 24 hours - quest data (rarely changes)
+  TRADER_DATA: 12 * 60 * 60 * 1000, // 12 hours - trader data
+  CLIENT_CACHE: 2 * 60 * 1000, // 2 minutes - client-side cache to prevent duplicate requests
+  BROWSER_CACHE: 5 * 60 * 1000 // 5 minutes - browser cache (matches server update frequency)
+} as const 

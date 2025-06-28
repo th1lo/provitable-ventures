@@ -211,6 +211,20 @@ export const analyzeWeaponParts = (bundledItem: ItemPrice['bundledItem']) => {
     };
   }
 
+  // Debug logging for weapon parts data
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Analyzing weapon parts for ${bundledItem.name}:`, {
+      containsItemsCount: bundledItem.containsItems.length,
+      firstItem: bundledItem.containsItems[0]?.item ? {
+        name: bundledItem.containsItems[0].item.name,
+        hasSellFor: !!bundledItem.containsItems[0].item.sellFor,
+        sellForLength: bundledItem.containsItems[0].item.sellFor?.length || 0,
+        hasAvg24hPrice: !!bundledItem.containsItems[0].item.avg24hPrice,
+        avg24hPrice: bundledItem.containsItems[0].item.avg24hPrice
+      } : 'No item data'
+    });
+  }
+
   // Hardcoded list of items that should be sold on flea market
   const fleaMarketItemIds = [
     '5a1ead28fcdbcb001912fa9f', // DLOC-IRD

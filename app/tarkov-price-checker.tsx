@@ -10,6 +10,7 @@ import { GameMode } from './types/tarkov'
 import { useTarkovData } from './hooks/useTarkovData'
 import { TarkovSummary } from './components/TarkovSummary'
 import { QuestTable } from './components/QuestTable'
+import { CacheStatusComponent } from './components/CacheStatus'
 import { isFleaMarketRestricted } from './utils/tarkov-utils'
 
 export default function TarkovPriceChecker() {
@@ -27,7 +28,7 @@ export default function TarkovPriceChecker() {
     groupItemsByQuest,
     requiredItemsData,
     isInitialLoad,
-    cacheTimestamp
+    cacheStatus
   } = useTarkovData(gameMode)
 
   const toggleQuestExpansion = (questName: string) => {
@@ -108,19 +109,12 @@ export default function TarkovPriceChecker() {
               </div>
           </div>
 
-          {/* Status Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-            <div className="flex items-center gap-2">
-              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-500">
-                {lastUpdated ? `Last updated: ${lastUpdated.toLocaleString()}` : 'No data'}
-              </p>
-            </div>
-            {dataStatus.isUpdating && (
-              <div className="flex items-center gap-2 text-xs">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                <span className="text-neutral-600">Updating...</span>
-              </div>
-            )}
+          {/* Cache Status Row */}
+          <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+            <CacheStatusComponent
+              cacheStatus={cacheStatus}
+              lastUpdated={lastUpdated}
+            />
           </div>
         </div>
         

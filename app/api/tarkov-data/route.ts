@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server'
 import { fetchItemPrices, fetchRequiredItemsData } from '../../utils/tarkov-utils'
 import type { GameMode, ApiItem, ItemPrice } from '../../types/tarkov'
@@ -143,7 +144,6 @@ const QUEST_DATA_QUERY = `
 // REMOVED: Old hardcoded bundled items query - now using dynamic containsItems detection
 
 // GraphQL query helper
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function graphqlQuery(query: string, variables: Record<string, unknown> = {}): Promise<any> {
   const response = await fetch('https://api.tarkov.dev/graphql', {
     method: 'POST',
@@ -487,8 +487,12 @@ async function fetchItemsByIds(itemIds: string[], gameMode: GameMode, batchSize:
 async function findBundledItems(questItems: ItemPrice[], gameMode: GameMode): Promise<Map<string, ApiItem>> {
   const cacheFilePath = path.join(CACHE_DIR, getCacheKey('bundled-weapons', gameMode))
   
+  // TEMPORARY: Force cache miss to ensure fresh data with pricing
+  // Remove this comment and restore cache checking after pricing is working
+  const FORCE_FRESH_DATA = true
+  
   // Try to read from cache first (12 hour cache for trader weapons)
-  if (await isCacheValid(cacheFilePath, TRADER_CACHE_DURATION)) {
+  if (!FORCE_FRESH_DATA && await isCacheValid(cacheFilePath, TRADER_CACHE_DURATION)) {
     const cachedData = await readCache<{ bundledItems: Array<[string, ApiItem]>, timestamp: number }>(cacheFilePath)
     if (cachedData?.bundledItems) {
       if (process.env.NODE_ENV === 'development') {
@@ -526,6 +530,26 @@ async function findBundledItems(questItems: ItemPrice[], gameMode: GameMode): Pr
               name
               shortName
               iconLink
+              avg24hPrice
+              lastLowPrice
+              changeLast48h
+              sellFor {
+                source
+                price
+                currency
+                priceRUB
+                vendor {
+                  name
+                  normalizedName
+                  ... on TraderOffer {
+                    minTraderLevel
+                    buyLimit
+                  }
+                  ... on FleaMarket {
+                    foundInRaidRequired
+                  }
+                }
+              }
             }
             count
           }

@@ -1,10 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ItemPrice, ApiItem, GameMode } from '../types/tarkov'
+import { CACHE_DURATIONS } from '../constants/tarkov-data'
 import { 
   isFleaMarketRestricted, 
   findCheapestAcquisitionMethod,
   getTotalValue
 } from '../utils/tarkov-utils'
+
+// Cache status type
+export interface CacheStatus {
+  isStale: boolean
+  nextUpdateTime: Date | null
+  timeUntilUpdate: number | null
+  freshness: 'fresh' | 'stale' | 'expired'
+  dataAge: number
+}
 
 export const useTarkovData = (gameMode: GameMode = 'pvp') => {
   const [itemPrices, setItemPrices] = useState<ItemPrice[]>([])
@@ -23,7 +33,46 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
   // Add loading state management
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [cacheTimestamp, setCacheTimestamp] = useState<number | null>(null)
+  const [serverTimestamp, setServerTimestamp] = useState<number | null>(null)
   const fetchPromiseRef = useRef<Promise<void> | null>(null)
+
+  // Calculate cache status
+  const calculateCacheStatus = useCallback((): CacheStatus => {
+    if (!cacheTimestamp || !serverTimestamp) {
+      return {
+        isStale: true,
+        nextUpdateTime: null,
+        timeUntilUpdate: null,
+        freshness: 'expired',
+        dataAge: 0
+      }
+    }
+
+    const now = Date.now()
+    const dataAge = now - serverTimestamp
+    
+    // Use the most restrictive cache duration (price data = 2 minutes)
+    const cacheExpiry = CACHE_DURATIONS.PRICE_DATA
+    const nextUpdateTime = new Date(serverTimestamp + cacheExpiry)
+    const timeUntilUpdate = Math.max(0, nextUpdateTime.getTime() - now)
+    
+    let freshness: CacheStatus['freshness'] = 'fresh'
+    if (dataAge > cacheExpiry) {
+      freshness = 'expired'
+    } else if (dataAge > cacheExpiry * 0.75) { // 75% of cache duration
+      freshness = 'stale'
+    }
+
+    return {
+      isStale: dataAge > cacheExpiry * 0.75,
+      nextUpdateTime,
+      timeUntilUpdate,
+      freshness,
+      dataAge
+    }
+  }, [cacheTimestamp, serverTimestamp])
+
+  const cacheStatus = calculateCacheStatus()
 
   const fetchPrices = useCallback(async () => {
     // Prevent duplicate requests
@@ -37,7 +86,7 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
       
       try {
         // Check if we have recent data before making API call
-        if (cacheTimestamp && Date.now() - cacheTimestamp < 60000) { // 1 minute client cache
+        if (cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATIONS.CLIENT_CACHE) {
           setLoading(false)
           return
         }
@@ -46,7 +95,7 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
         const response = await fetch(`/api/tarkov-data?gameMode=${gameMode}`, {
           // Add cache headers for browser caching
           headers: {
-            'Cache-Control': 'max-age=300' // 5 minute browser cache
+            'Cache-Control': `max-age=${CACHE_DURATIONS.BROWSER_CACHE / 1000}`
           }
         })
         
@@ -95,8 +144,11 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
         }
 
         setItemPrices(mappedPrices)
-        setLastUpdated(new Date())
-        setCacheTimestamp(Date.now())
+        const now = Date.now()
+        const serverDataTimestamp = data.timestamp || now
+        setLastUpdated(new Date(serverDataTimestamp)) // Use server data timestamp, not client fetch time
+        setCacheTimestamp(now)
+        setServerTimestamp(serverDataTimestamp)
         setIsInitialLoad(false)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred')
@@ -285,6 +337,8 @@ export const useTarkovData = (gameMode: GameMode = 'pvp') => {
     invalidateCache,
     forceRefresh,
     isInitialLoad,
-    cacheTimestamp
+    cacheTimestamp,
+    serverTimestamp,
+    cacheStatus
   }
 } 

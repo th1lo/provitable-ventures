@@ -677,20 +677,20 @@ export const QuestTable: React.FC<QuestTableProps> = ({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1 sm:gap-2 mb-1">
                   <h3 className="text-base sm:text-lg md:text-xl font-bold text-neutral-900 dark:text-neutral-100 truncate">
-                    {questName}
-                  </h3>
-                  {QUEST_WIKI_LINKS[questName] && (
-                    <a
-                      href={QUEST_WIKI_LINKS[questName]}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      {questName}
+                    </h3>
+                    {QUEST_WIKI_LINKS[questName] && (
+                      <a 
+                        href={QUEST_WIKI_LINKS[questName]} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
                       className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex-shrink-0"
-                      onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
                       title="View quest on Wiki"
-                    >
+                      >
                       <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </a>
-                  )}
+                      </a>
+                    )}
                 </div>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400">
                   {items.length} items • {fleaRestrictedItems.length} restricted
@@ -718,7 +718,7 @@ export const QuestTable: React.FC<QuestTableProps> = ({
               <h4 className="text-base sm:text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3 sm:mb-4 flex items-center gap-2">
                 <span className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></span>
                 <span className="truncate">Flea Market Available ({fleaAvailableItems.length})</span>
-              </h4>
+                  </h4>
 
               <ItemTable
                 items={fleaAvailableItems.map((item): TableItem => ({
@@ -735,7 +735,7 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                 theme="light"
                 allItemPrices={allItemPrices}
               />
-            </div>
+                </div>
           )}
 
           {/* Flea Market Restricted Items */}
@@ -751,22 +751,22 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                   <div key={item.id} className="py-3 sm:py-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        {item.iconLink && (
+                            {item.iconLink && (
                           <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
-                            <Image
-                              src={item.iconLink}
-                              alt={item.name}
+                                <Image 
+                                  src={item.iconLink} 
+                                  alt={item.name}
                               width={48}
                               height={48}
-                              className="object-contain w-full h-full"
+                                  className="object-contain w-full h-full"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.style.display = 'none';
                               }}
                               unoptimized={true}
-                            />
-                          </div>
-                        )}
+                                />
+                              </div>
+                            )}
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
                             <div className="flex items-center gap-2">
@@ -774,9 +774,9 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                                 {item.shortName}
                               </div>
                               {item.wikiLink && (
-                                <a
-                                  href={item.wikiLink}
-                                  target="_blank"
+                                <a 
+                                  href={item.wikiLink} 
+                                  target="_blank" 
                                   rel="noopener noreferrer"
                                   className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex-shrink-0"
                                   title="View on Wiki"
@@ -799,24 +799,24 @@ export const QuestTable: React.FC<QuestTableProps> = ({
                           </div>
                           <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
                             Total Cost ({gameMode.toUpperCase()})
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
+                            </div>
+                </div>
+              </div>
+                </div>
+                
                     {/* Detailed acquisition method analysis */}
                     <ItemAcquisitionAnalysis
-                      item={item}
-                      itemPriceCache={itemPriceCache}
+                    item={item}
+                    itemPriceCache={itemPriceCache}
                       allItemPrices={allItemPrices}
                       requiredItemsData={requiredItemsData}
                       gameMode={gameMode}
-                    />
+                  />
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+              </div>
+            )}
         </div>
       )}
     </div>
