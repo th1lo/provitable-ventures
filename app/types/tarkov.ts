@@ -1,205 +1,132 @@
-export type GameMode = 'pvp' | 'pve'
+// Game modes as named by the tarkov.dev JSON API (https://json.tarkov.dev/endpoints)
+export type GameMode = 'regular' | 'pve' | 'pvp-season'
 
-export interface ItemPrice {
+// Where the price of an ingredient comes from
+export type PriceSource = 'flea' | 'trader' | 'gp' | 'estimate' | 'unknown'
+
+// One item that is consumed (or needed as a tool) by a barter or craft
+export interface CostLine {
   id: string
   name: string
   shortName: string
-  avg24hPrice: number
-  lastLowPrice: number
-  changeLast48h: number
-  changeLast48hPercent?: number
-  updated: string
   iconLink: string
-  wikiLink: string
-  quantity: number
-  category: string
-  questOrder?: number
-  crafts: Craft[]
-  barters: Barter[]
-  fleaMarketFee?: number
-  sellFor: SellPrice[]
-  cheapestAcquisitionMethod?: {
-    type: 'craft' | 'barter' | 'trader' | 'bundled'
-    cost: number
-    costInRubles: number
-    currency: string
-    details: string
-    id: string
-    bundledItemDetails?: {
-      bundledItemName: string
-      bundledItemShortName: string
-      barterCost: number
-      sellValue: number
-      netCost: number
-      trader: string
-      traderLevel: number
-      requiredItems: Array<{ item: { id: string; name: string; shortName: string; iconLink: string }; count: number }>
-      weaponParts?: Array<{
-        id: string
-        name: string
-        shortName: string
-        iconLink: string
-        count: number
-        marketPrice: number
-        bestTraderPrice: number
-        bestTraderName: string
-        fleaPrice: number
-        recommendFlea: boolean
-        sellValue: number
-        isKeepForQuest: boolean
-        changeLast48h: number
-      }>
-      totalSellValue: number
-      fleaSellValue: number
-      traderSellValue: number
-    }
-  }
-  // Game mode specific prices
-  gameMode?: GameMode
-  pvpPrice?: number
-  pvePrice?: number
-  
-  // Bundled item data
-  bundledItem?: {
+  wikiLink?: string
+  count: number
+  unitPrice: number
+  totalPrice: number
+  priceSource: PriceSource
+  // "Flea", "Therapist LL2", "GP coin value", "Trader sell value", "No price"
+  priceLabel: string
+  changeLast48hPercent?: number
+}
+
+// One part you get on top of the quest item when buying a preset or pack, and where to sell it
+export interface ResaleLine {
+  id: string
+  name: string
+  shortName: string
+  iconLink: string
+  wikiLink?: string
+  count: number
+  sellTo: 'flea' | 'trader' | 'none'
+  sellToLabel: string
+  // Value of one unit after the flea market fee, or the trader price
+  unitValue: number
+  totalValue: number
+  changeLast48hPercent?: number
+}
+
+export type AcquisitionType = 'flea' | 'trader' | 'barter' | 'craft' | 'bundle'
+
+export interface AcquisitionMethod {
+  id: string
+  type: AcquisitionType
+  // "Flea Market", "Mechanic LL4", "Workbench level 3"
+  label: string
+  // Trader portrait or hideout station image
+  imageLink?: string
+  // Cost of ONE quest item in roubles
+  unitCost: number
+  // What one trade or craft costs and how many quest items it gives
+  batchCost: number
+  outputCount: number
+  // True when an ingredient has no market price and was valued at its trader sell price
+  approximate: boolean
+  unknownItems: string[]
+  traderLevel?: number
+  buyLimit?: number
+  taskUnlock?: { id: string; name: string; wikiLink?: string }
+  // Craft duration in seconds
+  duration?: number
+  // Price in the trader's own currency when it is not roubles
+  currencyPrice?: { amount: number; currency: string }
+  changeLast48hPercent?: number
+  requiredItems: CostLine[]
+  tools: CostLine[]
+  bundle?: {
     id: string
     name: string
     shortName: string
-    avg24hPrice: number
-    lastLowPrice: number
-    barters: Barter[]
-    sellFor: SellPrice[]
-    netCostPerUnit?: number
-    containsItems?: Array<{
-      item: {
-        id: string
-        name: string
-        shortName: string
-        iconLink: string
-        avg24hPrice: number
-        lastLowPrice: number
-        changeLast48h?: number
-        sellFor: Array<{
-          source: string
-          price: number
-          currency: string
-          priceRUB: number
-          vendor?: { name: string; normalizedName: string; minTraderLevel?: number; buyLimit?: number; foundInRaidRequired?: boolean }
-        }>
-      }
-      count: number
-    }>
+    iconLink: string
+    // Quest items inside one bundle
+    countInBundle: number
+    grossCost: number
+    resaleValue: number
+    fleaResale: number
+    traderResale: number
+    parts: ResaleLine[]
   }
 }
 
-export interface Craft {
-  id: string
-  station: {
-    id: string
-    name: string
-    normalizedName: string
-  }
-  level: number
-  duration: number
-  requiredItems: {
-    item: {
-      id: string
-      name: string
-      shortName: string
-      iconLink: string
-    }
-    count: number
-  }[]
-  rewardItems: {
-    item: {
-      id: string
-      name: string
-      shortName: string
-    }
-    count: number
-  }[]
-}
-
-export interface Barter {
-  id: string
-  trader: {
-    id: string
-    name: string
-    normalizedName: string
-  }
-  level: number
-  requiredItems: {
-    item: {
-      id: string
-      name: string
-      shortName: string
-      iconLink: string
-    }
-    count: number
-  }[]
-  rewardItems: {
-    item: {
-      id: string
-      name: string
-      shortName: string
-    }
-    count: number
-  }[]
-  taskUnlock?: {
-    id: string
-    name: string
-  }
-}
-
-export interface SellPrice {
-  source: string
-  price: number
-  currency: string
-  priceRUB?: number
-  vendor?: {
-    name: string
-    normalizedName: string
-    minTraderLevel?: number
-    buyLimit?: number
-    foundInRaidRequired?: boolean
-  }
-}
-
-export interface GraphQLError {
-  message: string
-}
-
-export interface ApiItem {
+export interface QuestItem {
   id: string
   name: string
   shortName: string
-  avg24hPrice: number
-  lastLowPrice: number
-  changeLast48h: number
-  changeLast48hPercent: number
-  updated: string
   iconLink: string
-  wikiLink: string
-  craftsFor: Craft[]
-  bartersFor: Barter[]
-  fleaMarketFee?: number
-  sellFor: SellPrice[]
-  containsItems?: Array<{
-    item: {
-      id: string
-      name: string
-      shortName: string
-      iconLink: string
-      avg24hPrice: number
-      lastLowPrice: number
-      changeLast48h?: number
-      sellFor: Array<{
-        source: string
-        price: number
-        currency: string
-        priceRUB: number
-        vendor?: { name: string; normalizedName: string; minTraderLevel?: number; buyLimit?: number; foundInRaidRequired?: boolean }
-      }>
-    }
-    count: number
-  }>
-} 
+  wikiLink?: string
+  quantity: number
+  foundInRaid: boolean
+  // The item cannot be listed on the flea market
+  fleaBanned: boolean
+  note?: string
+  // Sorted cheapest first; exact prices before approximate ones
+  methods: AcquisitionMethod[]
+  unitCost: number
+  totalCost: number
+  changeLast48hPercent?: number
+}
+
+export interface Quest {
+  id: string
+  name: string
+  wikiLink?: string
+  imageLink?: string
+  minPlayerLevel?: number
+  order: number
+  // Objectives that are not item hand-ins, e.g. "Survive and extract from The Lab (15)"
+  otherObjectives: string[]
+  items: QuestItem[]
+  totalCost: number
+  changeLast48hPercent?: number
+}
+
+export interface SeasonInfo {
+  name: string
+  start: number
+  end: number
+}
+
+export interface TarkovData {
+  gameMode: GameMode
+  quests: Quest[]
+  grandTotal: number
+  overallPriceChange: number
+  totalItems: number
+  restrictedItems: number
+  gpCoinValue: number
+  season?: SeasonInfo
+  // When tarkov.dev last updated the price data (ms since epoch)
+  pricesUpdated: number
+  // When our server last checked tarkov.dev (ms since epoch)
+  timestamp: number
+}

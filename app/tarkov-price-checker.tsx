@@ -4,79 +4,46 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
-import { GameMode } from './types/tarkov'
+import type { GameMode } from './types/tarkov'
+import { DEFAULT_GAME_MODE, GAME_MODES } from './constants/tarkov-data'
 
-// Import our modular components
 import { useTarkovData } from './hooks/useTarkovData'
 import { TarkovSummary } from './components/TarkovSummary'
 import { QuestTable } from './components/QuestTable'
 import { CacheStatusComponent } from './components/CacheStatus'
-import { isFleaMarketRestricted } from './utils/tarkov-utils'
+
+const formatDate = (timestamp: number) =>
+  new Date(timestamp).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })
 
 export default function TarkovPriceChecker() {
   const [expandedQuests, setExpandedQuests] = useState<Set<string>>(new Set())
-  const [gameMode, setGameMode] = useState<GameMode>('pvp')
+  const [gameMode, setGameMode] = useState<GameMode>(DEFAULT_GAME_MODE)
 
-  const {
-    itemPrices,
-    loading,
-    error,
-    lastUpdated,
-    itemPriceCache,
-    grandTotal,
-    overallPriceChange,
-    groupItemsByQuest,
-    requiredItemsData,
-    isInitialLoad,
-    cacheStatus
-  } = useTarkovData(gameMode)
+  const { data, loading, error, pricesUpdated, nextUpdateTime } = useTarkovData(gameMode)
 
-  const toggleQuestExpansion = (questName: string) => {
+  const toggleQuestExpansion = (questId: string) => {
     const newExpanded = new Set(expandedQuests)
-    if (newExpanded.has(questName)) {
-      newExpanded.delete(questName)
+    if (newExpanded.has(questId)) {
+      newExpanded.delete(questId)
     } else {
-      newExpanded.add(questName)
+      newExpanded.add(questId)
     }
     setExpandedQuests(newExpanded)
   }
 
-  // Data availability helper
-  const getDataStatus = () => {
-    if (isInitialLoad && !lastUpdated) {
-      return { 
-        showData: false,
-        isUpdating: false
-      }
-    }
-    
-    if (!lastUpdated) {
-      return { 
-        showData: false,
-        isUpdating: false
-      }
-    }
-
-    return {
-      showData: true,
-      isUpdating: loading
-    }
-  }
-
-  const dataStatus = getDataStatus()
+  const modeInfo = GAME_MODES.find(mode => mode.id === gameMode)
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
       <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-8 md:max-w-5xl">
-        
+
         {/* Header */}
         <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 sm:p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            {/* Left side - Logo and Title */}
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
-                <Image 
-                  src="/logo.png" 
+                <Image
+                  src="/logo.png"
                   alt="All On Red Logo"
                   width={64}
                   height={64}
@@ -93,84 +60,80 @@ export default function TarkovPriceChecker() {
               </div>
             </div>
 
-                                        {/* Right side - Controls */}
-              <div className="flex items-stretch sm:items-center gap-3 sm:gap-4">
-                {/* Game Mode Toggle */}
-                <div className="flex items-center gap-3">
-                  <ToggleGroup value={gameMode} onValueChange={(value) => setGameMode(value as GameMode)}>
-                    <ToggleGroupItem value="pvp">
-                      PvP
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="pve">
-                      PvE
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
+            {/* Game mode */}
+            <div className="flex flex-col items-start lg:items-end gap-1">
+              <ToggleGroup value={gameMode} onValueChange={(value) => setGameMode(value as GameMode)}>
+                {GAME_MODES.map(mode => (
+                  <ToggleGroupItem key={mode.id} value={mode.id}>
+                    {mode.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                {data?.season
+                  ? `Season "${data.season.name}" • ends ${formatDate(data.season.end)}`
+                  : modeInfo?.description}
+              </p>
+            </div>
           </div>
 
-          {/* Cache Status Row */}
           <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
             <CacheStatusComponent
-              cacheStatus={cacheStatus}
-              lastUpdated={lastUpdated}
+              pricesUpdated={pricesUpdated}
+              nextUpdateTime={nextUpdateTime}
+              loading={loading}
             />
           </div>
         </div>
-        
-        {/* Summary - Show if we have data */}
-        {dataStatus.showData && itemPrices.length > 0 && (
+
+        {/* Summary */}
+        {data && (
           <TarkovSummary
-            grandTotal={grandTotal}
-            totalItems={itemPrices.length}
-            restrictedItems={itemPrices.filter(item => isFleaMarketRestricted(item)).length}
-            overallPriceChange={overallPriceChange}
-            loading={loading}
+            grandTotal={data.grandTotal}
+            totalItems={data.totalItems}
+            restrictedItems={data.restrictedItems}
+            overallPriceChange={data.overallPriceChange}
           />
         )}
 
-        {/* Error Display */}
+        {/* Error */}
         {error && (
           <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg p-4">
             <p className="text-red-700 dark:text-red-300 font-medium">
-              Error: {error}
+              {data ? 'Could not refresh the prices, showing the last ones' : 'Could not load the prices'}: {error}
             </p>
           </div>
         )}
 
-        {/* Loading State - Only show when we have no data */}
-        {!dataStatus.showData && (
+        {/* Loading: only while there is nothing to show yet */}
+        {!data && !error && (
           <div className="bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-8 text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-neutral-600 dark:text-neutral-400" />
             <p className="text-neutral-700 dark:text-neutral-300 font-medium mb-2">
-              {loading ? 'Loading initial data...' : 'No data available'}
+              Loading {modeInfo?.label} prices...
             </p>
             <p className="text-sm text-neutral-500 dark:text-neutral-500">
-              {loading ? 'Fetching data from Tarkov.dev API' : 'Unable to load price data'}
+              Fetching data from tarkov.dev
             </p>
           </div>
         )}
 
-        {/* Quest Tables - Always show data if available */}
-        {dataStatus.showData && itemPrices.length > 0 && (
-          <div className="space-y-4 sm:space-y-6">
-            
-            {/* Quest Tables */}
-            <div className="space-y-3 sm:space-y-4">
-              {groupItemsByQuest().map(([questName, items]) => (
-                <QuestTable
-                  key={questName}
-                  questName={questName}
-                  items={items}
-                  isExpanded={expandedQuests.has(questName)}
-                  itemPriceCache={itemPriceCache}
-                  gameMode={gameMode}
-                  onToggleExpansion={toggleQuestExpansion}
-                  allItemPrices={itemPrices}
-                  requiredItemsData={requiredItemsData}
-                />
-              ))}
-            </div>
+        {/* Quests */}
+        {data && (
+          <div className="space-y-3 sm:space-y-4">
+            {data.quests.map(quest => (
+              <QuestTable
+                key={quest.id}
+                quest={quest}
+                isExpanded={expandedQuests.has(quest.id)}
+                onToggleExpansion={toggleQuestExpansion}
+              />
+            ))}
+            <p className="text-xs text-neutral-500 dark:text-neutral-500 px-1">
+              Every item is priced at the cheapest way to get it: flea market, trader, barter, hideout craft, or a
+              preset bought for its parts. Barter and craft ingredients are priced at the cheaper of flea market
+              and trader. Trader levels, task unlocks and restock limits are shown but not filtered.
+            </p>
           </div>
         )}
 
@@ -179,9 +142,9 @@ export default function TarkovPriceChecker() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
             <div className="text-neutral-600 dark:text-neutral-400">
               <span className="font-medium">Data provided by:</span>{' '}
-              <a 
-                href="https://tarkov.dev" 
-                target="_blank" 
+              <a
+                href="https://tarkov.dev"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
               >
@@ -197,4 +160,4 @@ export default function TarkovPriceChecker() {
       </div>
     </div>
   )
-} 
+}

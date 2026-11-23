@@ -34,6 +34,12 @@
 
 ## A Life Lesson
 
-8 x Bottle of Tarkovskaya vodka
-15 x Bottle of Dan Jackiel whiskey
-15 x Bottle of Fierce Hatchling moonshine
+12 x Bottle of Tarkovskaya vodka
+20 x Bottle of Dan Jackiel whiskey
+20 x Bottle of Fierce Hatchling moonshine
+
+## Consolation Prize
+
+Survive and extract from The Lab 15 times, eliminate 100 targets in The Lab
+
+15 x TerraGroup Labs access keycard (one per raid)

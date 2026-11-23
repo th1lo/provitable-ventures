@@ -87,7 +87,7 @@ export const TarkovSummary: React.FC<TarkovSummaryProps> = ({
             <span className="text-2xl font-bold text-red-600 dark:text-red-400">{restrictedItems}</span>
           )}
           <span className="text-sm text-neutral-500 dark:text-neutral-500 uppercase font-medium">
-            Restricted
+            No flea
           </span>
         </div>
       </div>
